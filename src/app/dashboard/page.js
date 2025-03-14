@@ -7,8 +7,8 @@ import Header from '@/components/navigation/Header';
 
 function LandingPage() {
   return (
-    <div className="min-h-screen">
-      <Header />
+    <div className="z-10 min-h-screen">
+      {/* <Header /> */}
       <div className="min-h-screen bg-teal-400 min-w-screen md:border-x mt-[5vh] flex flex-col items-center py-4 md:px-4 px-auto mx-auto lg:px-12 xl:px-10">
         <h1 className="text-2xl font-bold">This is Main Page</h1>
         <div className="bg-red-600 w-full font-bold mx-auto font-sans flex flex-col md:flex-row p-4 my-[0vh] md:my-[7vh]">

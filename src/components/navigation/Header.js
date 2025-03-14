@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 
 function Header() {
   const buttonHandler = () => {
@@ -18,7 +19,13 @@ function Header() {
         href="/"
         onClick={buttonHandler}
       >
-        ©Alhaqz
+        <Image
+          className={'p-1 flex-1 object-cover md:w-[100px] md:scale-[80%]'}
+          src={'/logo_bmkg_mini.png'}
+          width={100}
+          height={100}
+          alt="Image"
+        />
       </Link>
       <div className="flex-1 md:flex mr-5 flex-row items-center justify-end md:show hidden">
         <Link
