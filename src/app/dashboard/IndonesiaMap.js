@@ -1,93 +1,132 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  CircleMarker,
-} from 'react-leaflet';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import Papa from 'papaparse';
 
-// Fix default icon issue in Leaflet (Next.js)
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-// Default marker icon
-const defaultIcon = L.icon({
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
+const createCustomIcon = (color = 'red') => {
+  return L.divIcon({
+    className: 'custom-icon',
+    html: `<div style="font-size: 24px; color: ${color};"><i class="icon-marker">📍</i></div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    popupAnchor: [0, -24],
+  });
+};
 
 const IndonesiaMap = ({ interactive = false }) => {
   const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch CSV Data
+  const fetchLocations = useCallback(async () => {
+    try {
+      const response = await fetch('/stations.csv');
+      const csvData = await response.text();
+
+      Papa.parse(csvData, {
+        header: true,
+        skipEmptyLines: true,
+        worker: true, // Enables multi-threaded parsing
+        complete: (result) => {
+          setLocations(result.data);
+          setLoading(false);
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching CSV:', error);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // Load CSV file dynamically
-    fetch('/stations.csv')
-      .then((response) => response.text())
-      .then((csvData) => {
-        Papa.parse(csvData, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (result) => {
-            setLocations(result.data);
-          },
-        });
-      });
-  }, []);
+    fetchLocations();
+  }, [fetchLocations]);
+
+  // Memoized Pop-up Data
+  const popUpData = useMemo(
+    () =>
+      locations.map((loc) => [
+        ['Location', loc.address],
+        ['Maintenance Agency', loc.unit],
+        ['Calibration Agency', loc.unit],
+        ['Digitizer', loc.category],
+        ['Seismometer', loc.category],
+        ['Status', loc.status, 'text-green-600'],
+        ['Mode', loc.description, 'text-blue-600'],
+      ]),
+    [locations]
+  );
+
+  // Show loading indicator
+  if (loading) {
+    return (
+      <div className="bg-gray-400 w-full h-full flex justify-center items-center">
+        <p>Loading map...</p>
+      </div>
+    );
+  }
 
   return (
     <MapContainer
       bounds={[
-        [-11, 94], // Bottom-left (Southwest of Indonesia)
-        [6, 141], // Top-right (Northeast of Indonesia)
+        [-11, 94], // Bottom-left
+        [6, 141], // Top-right
       ]}
-      style={{ height: '40vh', width: '60vw' }}
+      style={{ height: '50vh', width: '100%' }}
       zoomControl={false}
       dragging={interactive}
       scrollWheelZoom={interactive}
       doubleClickZoom={interactive}
       touchZoom={interactive}
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap contributors"
-      />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      {/* Add Markers from CSV */}
-      {locations.map((loc) => (
-        <div key={loc.id}>
-          <CircleMarker
-            center={[parseFloat(loc.latitude), parseFloat(loc.longitude)]}
-            radius={5}
-            color="red"
-            fillColor="red"
-            fillOpacity={1}
-          />
-          <Marker
-            position={[parseFloat(loc.latitude), parseFloat(loc.longitude)]}
-            icon={defaultIcon}
-          >
-            <Popup>
-              <strong>{loc.name}</strong>
-              <br />
-              📍 {loc.region}
-              <br />
-              🏠 {loc.address}
-              <br />
-              <a href={loc.link} target="_blank" rel="noopener noreferrer">
-                View on Google Maps
+      {locations.map((loc, index) => (
+        <Marker
+          key={index}
+          position={[+loc.latitude, +loc.longitude]}
+          icon={createCustomIcon('blue')}
+        >
+          <Popup>
+            <div className="p-2 w-72">
+              <h1 className="font-bold text-lg">{loc.station_code}</h1>
+              <a
+                href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+              >
+                {loc.latitude}, {loc.longitude}
               </a>
-            </Popup>
-          </Marker>
-        </div>
+
+              {popUpData[index]?.map(([label, value, extraClass]) => (
+                <p key={label} className="w-full flex flex-row">
+                  <span className="text-gray-500 w-full flex-1">{label}:</span>
+                  <strong className={extraClass + ' w-full flex-1'}>
+                    {value}
+                  </strong>
+                </p>
+              ))}
+
+              <div className="mt-3 space-y-2">
+                <button className="w-full bg-blue-100 text-blue-600 py-1 rounded-md hover:bg-blue-200">
+                  View Details Report
+                </button>
+                <a
+                  href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full block text-center bg-gray-100 text-gray-600 py-1 rounded-md hover:bg-gray-200"
+                >
+                  Open in Google Maps
+                </a>
+              </div>
+            </div>
+          </Popup>
+        </Marker>
       ))}
     </MapContainer>
   );

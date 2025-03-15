@@ -11,8 +11,8 @@ function LandingPage() {
         <h1 className="text-2xl font-bold">This is Main Page</h1>
 
         <div className="w-full h-full mx-auto mb-10 mt-5">
-          <div className="flex flex-col items-center mb-5 justify-center w-full h-[400px] md:h-[500px]">
-            <IndonesiaMap interactive={false} />
+          <div className="flex flex-col items-center mb-5 justify-center w-full h-[300px] md:h-[500px]">
+            <IndonesiaMap interactive={true} />
           </div>
 
           <div className="font-bold font-sans w-full flex flex-col md:flex-col lg:flex-row gap-4">
