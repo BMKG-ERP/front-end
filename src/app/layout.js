@@ -29,31 +29,29 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
-      <body>
-        <div className="min-h-screen flex flex-col overflow-x-hidden">
-          <div className="flex flex-grow">
-            {/* Sidebar */}
-            <div
-              className="fixed top-0 left-0 h-full bg-[#191919] transition-all duration-300"
-              style={{
-                width: isMobile ? 0 : sidebarWidth, // Dynamically set width
-                overflow: isMobile ? 'hidden' : 'visible',
-                pointerEvents: isMobile ? 'none' : 'auto', // Prevent click issues
-              }}
-            >
-              {!isMobile && <Navigation />}
-            </div>
+      <body className="min-h-screen flex flex-col">
+        <div className="flex flex-grow">
+          {/* Sidebar */}
+          <div
+            className="fixed top-0 left-0 h-full bg-[#191919] transition-all duration-300"
+            style={{
+              width: isMobile ? 0 : sidebarWidth,
+              overflow: isMobile ? 'hidden' : 'visible',
+              pointerEvents: isMobile ? 'none' : 'auto',
+            }}
+          >
+            {!isMobile && <Navigation />}
+          </div>
 
-            {/* Main Content */}
-            <div
-              className="flex flex-col flex-grow transition-all duration-300"
-              style={{
-                paddingLeft: isMobile ? 0 : sidebarWidth, // Ensure alignment
-              }}
-            >
-              {children}
-              <Footer />
-            </div>
+          {/* Main Content Area */}
+          <div
+            className="flex flex-col flex-grow min-h-screen transition-all duration-300"
+            style={{
+              paddingLeft: isMobile ? 0 : sidebarWidth,
+            }}
+          >
+            <div className="flex flex-col flex-grow">{children}</div>
+            <Footer />
           </div>
         </div>
       </body>
