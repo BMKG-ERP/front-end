@@ -75,7 +75,12 @@ const IndonesiaMap = ({ interactive = false }) => {
         [-11, 94], // Bottom-left
         [6, 141], // Top-right
       ]}
-      style={{ height: '50vh', width: '100%' }}
+      style={{
+        height: '50vh',
+        width: '100%',
+        position: 'relative',
+        zIndex: 10,
+      }}
       zoomControl={false}
       dragging={interactive}
       scrollWheelZoom={interactive}

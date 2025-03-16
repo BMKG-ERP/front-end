@@ -20,34 +20,30 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
+  const [expanded, setExpanded] = useState(false);
   const [nav, setNav] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      const mobileView = window.innerWidth < 768;
-      if (mobileView) {
-        setIsMobile(mobileView);
-        setNav(mobileView);
-        setExpanded(!mobileView);
-      }
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
     };
 
-    if (typeof window !== 'undefined') {
-      handleResize();
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
+    checkScreenSize(); // Check initially
+
+    window.addEventListener('resize', checkScreenSize); // Listen for resizing
+    return () => window.removeEventListener('resize', checkScreenSize); // Cleanup
   }, []);
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* ✅ Mobile Menu Button */}
       {isMobile && (
         <button
-          onClick={() => setNav(!nav)}
-          className="fixed top-5 left-5 z-50 p-2 bg-blue-500 rounded-full shadow-md"
+          onClick={() => {
+            setNav(!nav), setExpanded(!nav);
+          }}
+          className="fixed top-5 left-5 z-[100] p-2 bg-gray-800 rounded-full shadow-md"
         >
           {nav ? (
             <AiOutlineClose size={30} color="white" />
@@ -57,28 +53,26 @@ const Sidebar = () => {
         </button>
       )}
 
-      {/* Sidebar */}
+      {/* ✅ Sidebar */}
       <nav
         className={`fixed bg-[#191919] text-white transition-all duration-300 z-50 ${
           isMobile
-            ? 'bottom-0 left-0 w-full h-14 flex items-center justify-around shadow-md'
-            : `top-0 left-0 h-full ${
-                expanded ? 'w-48' : 'w-16'
-              } flex flex-col justify-between shadow-lg`
-        }`}
+            ? nav
+              ? 'left-0 w-48 h-full'
+              : '-left-full w-48 h-full'
+            : `left-0 h-full ${expanded ? 'w-48' : 'w-16'}`
+        } shadow-lg`}
       >
-        {/* Logo and Expand Button */}
-        {!isMobile && (
-          <>
-            <Image
-              className="mt-4 mb-6 mx-auto"
-              src="/logo_bmkg_mini.png"
-              width={50}
-              height={50}
-              alt="Sidebar Logo"
-            />
+        <div className="flex flex-col items-center mt-4 z-50">
+          <Image
+            src="/logo_bmkg_mini.png"
+            width={50}
+            height={50}
+            alt="Sidebar Logo"
+          />
+          {!isMobile && (
             <button
-              className="bg-gray-800 p-2 rounded-full shadow-md hover:bg-gray-700 mx-auto"
+              className="bg-gray-800 p-2 rounded-full shadow-md hover:bg-gray-700 mt-4"
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? (
@@ -87,11 +81,11 @@ const Sidebar = () => {
                 <HiChevronRight size={24} />
               )}
             </button>
-          </>
-        )}
+          )}
+        </div>
 
-        {/* Sidebar Links */}
-        <ul className="flex flex-col items-start justify-start gap-y-6 w-full px-4 mt-6">
+        {/* ✅ Sidebar Links */}
+        <ul className="flex flex-col items-start gap-y-6 px-4 mt-6">
           {menuItems.map(({ href, icon, label }, index) => (
             <li key={index} className="hover:opacity-100 opacity-70 w-full">
               <Link
@@ -101,9 +95,8 @@ const Sidebar = () => {
                 <span className="w-8 flex justify-center">{icon}</span>
                 <span
                   className={`text-white transition-all duration-300 ${
-                    expanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
+                    expanded ? 'opacity-100' : 'opacity-0'
                   }`}
-                  style={{ minWidth: expanded ? 'max-content' : '0px' }}
                 >
                   {label}
                 </span>
