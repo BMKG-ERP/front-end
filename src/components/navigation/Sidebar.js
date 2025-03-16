@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AiOutlineClose, AiOutlineMenu } from 'react-icons/ai';
 import Image from 'next/image';
 import {
@@ -12,14 +12,10 @@ import {
 import { HiChevronRight, HiChevronLeft } from 'react-icons/hi';
 import Link from 'next/link';
 
-const menuItems = [
-  { href: '/', icon: <IoHomeSharp size={28} />, label: 'Home' },
-  { href: '/work', icon: <IoAnalytics size={28} />, label: 'Work' },
-  { href: '/about', icon: <IoMapSharp size={28} />, label: 'About' },
-  { href: '/contact', icon: <IoSettings size={28} />, label: 'Contact' },
-];
+// 🟢 Create Context for Sidebar State
+const SidebarContext = createContext();
 
-const Sidebar = () => {
+export const SidebarProvider = ({ children }) => {
   const [expanded, setExpanded] = useState(false);
   const [nav, setNav] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -29,11 +25,32 @@ const Sidebar = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
-    checkScreenSize(); // Check initially
-
-    window.addEventListener('resize', checkScreenSize); // Listen for resizing
-    return () => window.removeEventListener('resize', checkScreenSize); // Cleanup
+    checkScreenSize(); // Initial check
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
+  return (
+    <SidebarContext.Provider
+      value={{ isMobile, expanded, setExpanded, nav, setNav }}
+    >
+      {children}
+    </SidebarContext.Provider>
+  );
+};
+
+// 🟢 Hook to use Sidebar Context in other components
+export const useSidebarContext = () => useContext(SidebarContext);
+
+const menuItems = [
+  { href: '/', icon: <IoHomeSharp size={28} />, label: 'Home' },
+  { href: '/work', icon: <IoAnalytics size={28} />, label: 'Work' },
+  { href: '/about', icon: <IoMapSharp size={28} />, label: 'About' },
+  { href: '/contact', icon: <IoSettings size={28} />, label: 'Contact' },
+];
+
+const Sidebar = () => {
+  const { isMobile, expanded, setExpanded, nav, setNav } = useSidebarContext();
 
   return (
     <>
@@ -41,7 +58,8 @@ const Sidebar = () => {
       {isMobile && (
         <button
           onClick={() => {
-            setNav(!nav), setExpanded(!nav);
+            setNav(!nav);
+            setExpanded(!nav);
           }}
           className="fixed top-5 left-5 z-[100] p-2 bg-gray-800 rounded-full shadow-md"
         >

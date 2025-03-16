@@ -1,6 +1,6 @@
 'use client';
 
-import MaintenanceData from './MaintenanceData';
+import MaintenanceData from './MaintenanceDataWrapper';
 import EvaluationData from './EvaluationStatus';
 import IndonesiaMap from './IndonesianMapWrapper';
 
