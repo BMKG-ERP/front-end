@@ -9,7 +9,7 @@ import {
   IoHomeSharp,
   IoSettings,
 } from 'react-icons/io5';
-import { HiChevronRight, HiChevronLeft } from 'react-icons/hi';
+import { HiChevronRight, HiChevronLeft, HiLibrary } from 'react-icons/hi';
 import Link from 'next/link';
 
 // 🟢 Create Context for Sidebar State
@@ -44,6 +44,7 @@ export const useSidebarContext = () => useContext(SidebarContext);
 
 const menuItems = [
   { href: '/', icon: <IoHomeSharp size={28} />, label: 'Home' },
+  { href: '/stations', icon: <HiLibrary size={28} />, label: 'Stations' },
   { href: '/work', icon: <IoAnalytics size={28} />, label: 'Work' },
   { href: '/about', icon: <IoMapSharp size={28} />, label: 'About' },
   { href: '/contact', icon: <IoSettings size={28} />, label: 'Contact' },

@@ -6,30 +6,51 @@ import {
   IoCloseCircleOutline,
 } from 'react-icons/io5';
 
-const evaluationData = [
-  { name: 'Excellent', value: 357, color: '#4CAF50', icon: <IoStarOutline /> },
-  {
-    name: 'Good',
-    value: 106,
-    color: '#FFC107',
-    icon: <IoCheckmarkCircleOutline />,
-  },
-  { name: 'Poor', value: 44, color: '#F44336', icon: <IoCloseCircleOutline /> },
-];
+// const evaluationData = [
+//   { name: 'Excellent', value: 357, color: '#4CAF50', icon: <IoStarOutline /> },
+//   {
+//     name: 'Good',
+//     value: 106,
+//     color: '#FFC107',
+//     icon: <IoCheckmarkCircleOutline />,
+//   },
+//   { name: 'Poor', value: 44, color: '#F44336', icon: <IoCloseCircleOutline /> },
+// ];
 
 const EvaluationData = () => {
   const [chartSize, setChartSize] = useState(500);
+  const [evaluationData, setEvaluationData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Update chart size based on window width
+  const fetchEvaluationData = async () => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/stations/evaluation-status`
+      );
+      const data = await response.json();
+
+      console.log('API Response:', data); // Debugging
+
+      setEvaluationData(data.data || []); // Ensure data is an array
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching locations:', error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    // ✅ Handle window resize
     const handleResize = () => {
       setChartSize(window.innerWidth < 768 ? 300 : 500);
     };
 
-    handleResize(); // Set initial size
+    handleResize(); // Set initial chart size
+    fetchEvaluationData(); // Fetch data when component mounts & when `page` changes
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, []); // ✅
 
   return (
     <div className="flex flex-col items-center w-full">

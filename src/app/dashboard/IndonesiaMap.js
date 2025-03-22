@@ -23,20 +23,15 @@ const IndonesiaMap = ({ interactive = false }) => {
   // Fetch CSV Data
   const fetchLocations = useCallback(async () => {
     try {
-      const response = await fetch('/stations.csv');
-      const csvData = await response.text();
+      const response = await fetch('http://127.0.0.1:8000/api/stations');
+      const data = await response.json(); // Parse JSON response
 
-      Papa.parse(csvData, {
-        header: true,
-        skipEmptyLines: true,
-        worker: true, // Enables multi-threaded parsing
-        complete: (result) => {
-          setLocations(result.data);
-          setLoading(false);
-        },
-      });
+      console.log('API Response:', data); // Debugging
+
+      setLocations(data.data); // Ensure data is an array
+      setLoading(false);
     } catch (error) {
-      console.error('Error fetching CSV:', error);
+      console.error('Error fetching locations:', error);
       setLoading(false);
     }
   }, []);
@@ -49,13 +44,10 @@ const IndonesiaMap = ({ interactive = false }) => {
   const popUpData = useMemo(
     () =>
       locations.map((loc) => [
-        ['Location', loc.address],
-        ['Maintenance Agency', loc.unit],
-        ['Calibration Agency', loc.unit],
-        ['Digitizer', loc.category],
-        ['Seismometer', loc.category],
+        ['Categoty', loc.category],
+        ['City', loc.city],
+        ['Province', loc.province],
         ['Status', loc.status, 'text-green-600'],
-        ['Mode', loc.description, 'text-blue-600'],
       ]),
     [locations]
   );
