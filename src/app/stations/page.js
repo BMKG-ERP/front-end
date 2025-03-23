@@ -19,3 +19,20 @@ function StationPage() {
 }
 
 export default StationPage;
+
+// "equipment_id": "PSP-AAFM-2023-2",
+// "serial_number": null,
+// "name": "Tipe 2 Panel",
+// "station_code": "AAFM",
+// "category": "Sistem Power",
+// "manufacture": null,
+// "type": null,
+// "sampling_rate": null,
+// "input": null,
+// "installation_date": null,
+// "calibration_date": null,
+// "firmware_version": null,
+// "description": null,
+// "technician": null,
+// "status": "active",
+// "supplier": null

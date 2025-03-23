@@ -17,7 +17,6 @@ import {
   FaSortDown,
   FaSearch,
   FaMapMarkerAlt,
-  FaTimes,
 } from 'react-icons/fa';
 
 const SortIcon = ({ column }) => {
@@ -30,7 +29,11 @@ const SortIcon = ({ column }) => {
   );
 };
 
-const StationTable = () => {
+const EquipmentTable = ({ stationCode }) => {
+  const decodedStationCode = stationCode
+    ? decodeURIComponent(stationCode).toUpperCase()
+    : '';
+
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,18 +43,12 @@ const StationTable = () => {
     totalPages: 1,
     limit: 10,
   });
-  const [isCreateStation, setIsCreateStation] = useState(false);
-  const [isEditStation, setIsEditStation] = useState(false);
-  const [formData, setFormData] = useState({
-    station_code: '',
-    category: '',
-    city: '',
-    province: '',
-    description: '',
-    latitude: '',
-    longitude: '',
-  });
 
+  useEffect(() => {
+    if (decodedStationCode) {
+      fetchData();
+    }
+  }, [decodedStationCode]);
   const fetchData = async (
     sort = '',
     order = '',
@@ -61,7 +58,7 @@ const StationTable = () => {
   ) => {
     setLoading(true);
     try {
-      const url = new URL('http://127.0.0.1:8000/api/stations');
+      const url = new URL(`http://127.0.0.1:8000/api/equipments/`);
       if (sort && order) {
         url.searchParams.append('sort', sort);
         url.searchParams.append('order', order);
@@ -127,24 +124,39 @@ const StationTable = () => {
     fetchData('', '', 1, pagination.limit, event.target.value);
   };
 
-  const openCreateStation = () => setIsCreateStation(true);
-  const closeCreateStation = () => setIsCreateStation(false);
-  const openEditStation = (data) => {
-    setFormData(data); // Populate form fields
-    setIsEditStation(true);
-  };
-
-  const closeEditStation = () => setIsEditStation(false);
-
   const columns = [
     {
-      accessorKey: 'station_code',
+      accessorKey: 'equipment_id',
       header: ({ column }) => (
         <div
           className="flex items-center justify-center gap-1 cursor-pointer"
           onClick={() => handleSort(column)}
         >
-          Station Code
+          Equipment ID
+          <SortIcon column={column} />
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'serial_number',
+      header: ({ column }) => (
+        <div
+          className="flex items-center justify-center gap-1 cursor-pointer"
+          onClick={() => handleSort(column)}
+        >
+          Serial Number
+          <SortIcon column={column} />
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'name',
+      header: ({ column }) => (
+        <div
+          className="flex items-center justify-center gap-1 cursor-pointer"
+          onClick={() => handleSort(column)}
+        >
+          Name
           <SortIcon column={column} />
         </div>
       ),
@@ -162,51 +174,52 @@ const StationTable = () => {
       ),
     },
     {
-      accessorKey: 'city',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
-          City
-          <SortIcon column={column} />
-        </div>
-      ),
+      accessorKey: 'manufacture',
+      header: 'Manufacture',
     },
     {
-      accessorKey: 'province',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
-          Province
-          <SortIcon column={column} />
-        </div>
-      ),
+      accessorKey: 'type',
+      header: 'Type',
+    },
+    {
+      accessorKey: 'input',
+      header: 'Input',
+    },
+    {
+      accessorKey: 'installation_date',
+      header: 'Instalation Date',
+    },
+    {
+      accessorKey: 'calibration_date',
+      header: 'Calibration Date',
+    },
+    {
+      accessorKey: 'firmware_version',
+      header: 'Firmware Version',
     },
     {
       accessorKey: 'description',
       header: 'Description',
     },
     {
-      id: 'location',
-      header: 'Location',
-      cell: ({ row }) => (
-        <button
-          className="text-cyan-700 hover:text-cyan-900 cursor-pointer flex items-center justify-center"
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              window.open(
-                `https://www.google.com/maps?q=${row.original.latitude},${row.original.longitude}`,
-                '_blank'
-              );
-            }
-          }}
+      accessorKey: 'technician',
+      header: 'Technician',
+    },
+    {
+      accessorKey: 'status',
+      header: ({ column }) => (
+        <div
+          className="flex items-center justify-center gap-1 cursor-pointer"
+          onClick={() => handleSort(column)}
         >
-          <FaMapMarkerAlt /> Show on Maps
-        </button>
+          Status
+          <SortIcon column={column} />
+        </div>
       ),
+    },
+    {
+      accessorKey: 'supplier',
+      header: 'Supplier',
     },
     {
       id: 'actions',
@@ -216,7 +229,9 @@ const StationTable = () => {
           <div className="relative group">
             <FaEye
               className="text-xl text-cyan-700 hover:text-cyan-900 cursor-pointer"
-              onClick={() => console.log('View', row.original)}
+              onClick={() =>
+                router.push(`/stations/${row.original.station_code}`)
+              }
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               View
@@ -226,7 +241,7 @@ const StationTable = () => {
           <div className="relative group">
             <FaEdit
               className="text-xl text-emerald-700 hover:text-emerald-900 cursor-pointer"
-              onClick={() => openEditStation(row.original)}
+              onClick={() => console.log('Edit', row.original)}
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               Edit
@@ -248,11 +263,8 @@ const StationTable = () => {
   ];
 
   const colStyling = {
-    station_code: 'font-bold text-blue-950', // Bold & blue
-    category: 'text-gray-700', // Green text
-    city: 'text-gray-700', // Semi-bold
-    province: 'text-gray-700', // Italic & purple
-    description: 'text-gray-700', // Gray text
+    equipment_id: 'font-bold text-blue-950', // Bold & blue
+    status: 'font-bold text-blue-950', // Bold & blue
   };
 
   const table = useReactTable({
@@ -277,20 +289,15 @@ const StationTable = () => {
           />
           <FaSearch className="absolute right-2 top-2 text-gray-400" />
         </div>
-        <div>
-          <button
-            className="bg-teal-800 rounded-xl p-3 text-white hover:bg-teal-600 "
-            onClick={openCreateStation}
-          >
-            CREATE STATION
-          </button>
-        </div>
       </div>
       <div className="relative w-full h-full">
         <table className="w-full border border-cyan-700 rounded-lg shadow-md">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="text-cyan-900 font-bold">
+              <tr
+                key={headerGroup.id}
+                className="text-cyan-900 text-sm font-bold"
+              >
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
@@ -305,7 +312,7 @@ const StationTable = () => {
               </tr>
             ))}
           </thead>
-          <tbody className="bg-white border-cyan-700">
+          <tbody className="bg-white border-cyan-700 text-[12px]">
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="text-center py-20">
@@ -356,110 +363,8 @@ const StationTable = () => {
           entries
         </div>
       </div>
-      {/* Modal */}
-      {isCreateStation && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Create Station</h2>
-              <FaTimes
-                className="cursor-pointer"
-                onClick={closeCreateStation}
-              />
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                console.log(formData);
-              }}
-            >
-              {[
-                'Station Code',
-                'Category',
-                'City',
-                'Province',
-                'Description',
-                'Latitude',
-                'Longitude',
-              ].map((field, index) => (
-                <div key={index} className="mb-3">
-                  <label className="block text-sm font-medium">{field}</label>
-                  <input
-                    type="text"
-                    name={field.toLowerCase().replace(/ /g, '_')}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        [e.target.name]: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              ))}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded mt-2 hover:bg-blue-700"
-              >
-                Save
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {isEditStation && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Edit Station</h2>
-              <FaTimes className="cursor-pointer" onClick={closeEditStation} />
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                console.log(formData);
-              }}
-            >
-              {[
-                'Station Code',
-                'Category',
-                'City',
-                'Province',
-                'Description',
-                'Latitude',
-                'Longitude',
-              ].map((field, index) => (
-                <div key={index} className="mb-3">
-                  <label className="block text-sm font-medium">{field}</label>
-                  <input
-                    type="text"
-                    name={field.toLowerCase().replace(/ /g, '_')}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    value={
-                      formData[field.toLowerCase().replace(/ /g, '_')] || ''
-                    } // Set default value
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        [e.target.name]: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              ))}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded mt-2 hover:bg-blue-700"
-              >
-                Save
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-export default StationTable;
+export default EquipmentTable;
