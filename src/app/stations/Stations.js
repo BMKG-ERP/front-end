@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   useReactTable,
   getCoreRowModel,
@@ -42,15 +43,28 @@ const StationTable = () => {
   });
   const [isCreateStation, setIsCreateStation] = useState(false);
   const [isEditStation, setIsEditStation] = useState(false);
+  const [isDeleteStation, setIsDeleteStation] = useState(false);
   const [formData, setFormData] = useState({
     station_code: '',
     category: '',
-    city: '',
-    province: '',
+    unit: '',
     description: '',
+    status: '',
+    maps: '',
     latitude: '',
     longitude: '',
+    altitude: '',
+    province: '',
+    city: '',
+    district: '',
+    subdistrict: '',
+    network: '',
+    start_date: '',
+    address: '',
+    use_flag: '',
   });
+
+  const router = useRouter();
 
   const fetchData = async (
     sort = '',
@@ -91,6 +105,63 @@ const StationTable = () => {
       console.error('Error fetching stations:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createStation = async () => {
+    try {
+      const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
+      const response = await fetch(url.toString(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+      console.log('Success:', result);
+      closeCreateStation(); // Close modal after saving
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const updateStation = async () => {
+    try {
+      const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
+      const response = await fetch(
+        `${url.toString()}${formData.station_code}/`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const result = await response.json();
+      console.log('Updated:', result);
+      closeEditStation(); // Close modal after update
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const deleteStation = async () => {
+    try {
+      const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
+      const response = await fetch(
+        `${url.toString()}${formData.station_code}/`,
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const result = await response.json();
+      console.log('Deleted:', result);
+      closeEditStation(); // Close modal after update
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 
@@ -135,6 +206,8 @@ const StationTable = () => {
   };
 
   const closeEditStation = () => setIsEditStation(false);
+  const openDeleteStation = () => setIsDeleteStation(true);
+  const closeDeleteStation = () => setIsDeleteStation(false);
 
   const columns = [
     {
@@ -216,7 +289,9 @@ const StationTable = () => {
           <div className="relative group">
             <FaEye
               className="text-xl text-cyan-700 hover:text-cyan-900 cursor-pointer"
-              onClick={() => console.log('View', row.original)}
+              onClick={() =>
+                router.push(`/stations/${row.original.station_code}`)
+              }
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               View
@@ -236,7 +311,7 @@ const StationTable = () => {
           <div className="relative group">
             <FaTrash
               className="text-xl text-rose-700 hover:text-rose-900 cursor-pointer"
-              onClick={() => console.log('Delete', row.original)}
+              onClick={() => openDeleteStation(row.original)}
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               Delete
@@ -359,7 +434,8 @@ const StationTable = () => {
       {/* Modal */}
       {isCreateStation && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
+            {/* Header */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Create Station</h2>
               <FaTimes
@@ -367,39 +443,53 @@ const StationTable = () => {
                 onClick={closeCreateStation}
               />
             </div>
+
+            {/* Form */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                console.log(formData);
+                createStation();
               }}
             >
-              {[
-                'Station Code',
-                'Category',
-                'City',
-                'Province',
-                'Description',
-                'Latitude',
-                'Longitude',
-              ].map((field, index) => (
-                <div key={index} className="mb-3">
-                  <label className="block text-sm font-medium">{field}</label>
-                  <input
-                    type="text"
-                    name={field.toLowerCase().replace(/ /g, '_')}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        [e.target.name]: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              ))}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  ['Station Code', 'station_code'],
+                  ['Category', 'category'],
+                  ['Unit', 'unit'],
+                  ['Description', 'description'],
+                  ['Status', 'status'],
+                  ['Maps URL', 'maps'],
+                  ['Latitude', 'latitude'],
+                  ['Longitude', 'longitude'],
+                  ['Altitude', 'altitude'],
+                  ['Province', 'province'],
+                  ['City', 'city'],
+                  ['District', 'district'],
+                  ['Subdistrict', 'subdistrict'],
+                  ['Network', 'network'],
+                  ['Start Date', 'start_date'],
+                  ['Address', 'address'],
+                  ['Use Flag', 'use_flag'],
+                ].map(([label, name], index) => (
+                  <div key={index} className="mb-3">
+                    <label className="block text-sm font-medium">{label}</label>
+                    <input
+                      type={name === 'start_date' ? 'date' : 'text'}
+                      name={name}
+                      value={formData[name]}
+                      className="w-full p-2 border border-gray-300 rounded"
+                      onChange={(e) =>
+                        setFormData({ ...formData, [name]: e.target.value })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Save Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded mt-2 hover:bg-blue-700"
+                className="w-full bg-blue-600 text-white py-2 rounded mt-4 hover:bg-blue-700"
               >
                 Save
               </button>
@@ -410,51 +500,95 @@ const StationTable = () => {
 
       {isEditStation && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
+            {/* Header */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Edit Station</h2>
               <FaTimes className="cursor-pointer" onClick={closeEditStation} />
             </div>
+
+            {/* Form */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                console.log(formData);
+                updateStation();
               }}
             >
-              {[
-                'Station Code',
-                'Category',
-                'City',
-                'Province',
-                'Description',
-                'Latitude',
-                'Longitude',
-              ].map((field, index) => (
-                <div key={index} className="mb-3">
-                  <label className="block text-sm font-medium">{field}</label>
-                  <input
-                    type="text"
-                    name={field.toLowerCase().replace(/ /g, '_')}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    value={
-                      formData[field.toLowerCase().replace(/ /g, '_')] || ''
-                    } // Set default value
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        [e.target.name]: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              ))}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  ['Station Code', 'station_code'],
+                  ['Category', 'category'],
+                  ['Unit', 'unit'],
+                  ['Description', 'description'],
+                  ['Status', 'status'],
+                  ['Maps URL', 'maps'],
+                  ['Latitude', 'latitude'],
+                  ['Longitude', 'longitude'],
+                  ['Altitude', 'altitude'],
+                  ['Province', 'province'],
+                  ['City', 'city'],
+                  ['District', 'district'],
+                  ['Subdistrict', 'subdistrict'],
+                  ['Network', 'network'],
+                  ['Start Date', 'start_date'],
+                  ['Address', 'address'],
+                  ['Use Flag', 'use_flag'],
+                ].map(([label, name], index) => (
+                  <div key={index} className="mb-3">
+                    <label className="block text-sm font-medium">{label}</label>
+                    <input
+                      type={name === 'start_date' ? 'date' : 'text'}
+                      name={name}
+                      value={formData[name] || ''}
+                      className="w-full p-2 border border-gray-300 rounded"
+                      onChange={(e) =>
+                        setFormData({ ...formData, [name]: e.target.value })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Save Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded mt-2 hover:bg-blue-700"
+                className="w-full bg-blue-600 text-white py-2 rounded mt-4 hover:bg-blue-700"
               >
                 Save
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isDeleteStation && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Delete Station</h2>
+              <FaTimes
+                className="cursor-pointer"
+                onClick={closeCreateStation}
+              />
+            </div>
+            <div className="flex items-center p-4 justify-center">
+              <h1>Are you sure want to delete this station?</h1>
+            </div>
+            <div className="flex items-center p-4 justify-center">
+              <button
+                className="px-4 py-3 rounded-2xl border-2 border-teal-700 mx-5 hover:bg-teal-300"
+                onClick={closeDeleteStation}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 text-white py-3 mx-5 bg-red-600 rounded-2xl hover:bg-red-400"
+                onClick={deleteStation}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
