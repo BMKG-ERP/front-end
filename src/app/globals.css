@@ -71,3 +71,17 @@ footer {
 .content {
   flex: 1;
 }
+
+/* Force scrollbar to always show */
+::-webkit-scrollbar {
+  width: 10px; /* Adjust width */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: gray;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}

@@ -63,6 +63,8 @@ const StationTable = () => {
     address: '',
     use_flag: '',
   });
+  const [notification, setNotification] = useState({ message: '', type: '' });
+  const [errors, setErrors] = useState({});
 
   const router = useRouter();
 
@@ -118,51 +120,135 @@ const StationTable = () => {
       });
 
       const result = await response.json();
-      console.log('Success:', result);
+      showNotification(
+        `Succes create new Station with code ${formData.station_code} `,
+        result.message
+      );
       closeCreateStation(); // Close modal after saving
     } catch (error) {
-      console.error('Error:', error);
+      showNotification(
+        `Failed create new Station with code ${formData.station_code} `,
+        result.message
+      );
     }
   };
 
   const updateStation = async () => {
-    try {
-      const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
-      const response = await fetch(
-        `${url.toString()}${formData.station_code}/`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        }
-      );
+    if (validateForm()) {
+      try {
+        const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
+        const response = await fetch(
+          `${url.toString()}${formData.station_code}/`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+          }
+        );
 
-      const result = await response.json();
-      console.log('Updated:', result);
-      closeEditStation(); // Close modal after update
-    } catch (error) {
-      console.error('Error:', error);
+        const result = await response.json();
+        if (!result.error && result.code === 200) {
+          showNotification(
+            `Succes update Station ${formData.station_code} `,
+            result.message
+          );
+        } else {
+          showNotification(
+            `Error update new Station ${formData.station_code} `,
+            result.message
+          );
+        }
+        closeEditStation(); // Close modal after update
+      } catch (error) {
+        showNotification(`Server error`, result.message);
+      }
     }
   };
 
   const deleteStation = async () => {
     try {
-      const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
-      const response = await fetch(
-        `${url.toString()}${formData.station_code}/`,
-        {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        }
-      );
+      console.log('formData:', formData); // Debugging
+      console.log('station_code:', formData.station_code); // Debugging
+
+      const stationCode = formData.station_code;
+
+      if (!stationCode) {
+        console.error('Error: station_code is missing or empty!');
+        return; // Stop execution if station_code is invalid
+      }
+
+      const url = `http://127.0.0.1:8000/api/crud/stations/${stationCode}/`;
+
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ station_code: stationCode }), // Only if required
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete station: ${response.statusText}`);
+      }
 
       const result = await response.json();
-      console.log('Deleted:', result);
-      closeEditStation(); // Close modal after update
+      showNotification(
+        `Succes create new Station with code ${formData.station_code} `,
+        result.message
+      );
+      closeEditStation(); // Close modal after deletion
     } catch (error) {
-      console.error('Error:', error);
+      showNotification(
+        `Failed Delete Station ${formData.station_code} `,
+        result.message
+      );
     }
+  };
+
+  const validateForm = () => {
+    let newErrors = {};
+
+    // Required string fields
+    [
+      'station_code',
+      'category',
+      'unit',
+      'status',
+      'province',
+      'city',
+      'address',
+    ].forEach((field) => {
+      if (!formData[field]?.trim()) {
+        // ✅ FIXED: Use ?. to prevent undefined error
+        newErrors[field] = 'This field is required';
+      }
+    });
+
+    // Latitude validation (-90 to 90)
+    if (
+      formData.latitude === '' ||
+      isNaN(formData.latitude) ||
+      formData.latitude < -90 ||
+      formData.latitude > 90
+    ) {
+      newErrors.latitude = 'Latitude must be between -90 and 90';
+    }
+
+    // Longitude validation (-180 to 180)
+    if (
+      formData.longitude === '' ||
+      isNaN(formData.longitude) ||
+      formData.longitude < -180 ||
+      formData.longitude > 180
+    ) {
+      newErrors.longitude = 'Longitude must be between -180 and 180';
+    }
+
+    // Start date validation
+    if (!formData.start_date) {
+      newErrors.start_date = 'Start date is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Returns true if no errors
   };
 
   useEffect(() => {
@@ -180,6 +266,11 @@ const StationTable = () => {
       pagination.limit,
       searchQuery
     );
+  };
+
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification({ message: '', type: '' }), 3000);
   };
 
   const handlePageChange = (newPage) => {
@@ -206,8 +297,26 @@ const StationTable = () => {
   };
 
   const closeEditStation = () => setIsEditStation(false);
-  const openDeleteStation = () => setIsDeleteStation(true);
+  const openDeleteStation = (data) => {
+    setFormData(data);
+    setIsDeleteStation(true);
+  };
   const closeDeleteStation = () => setIsDeleteStation(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Remove error when the user starts typing
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: undefined, // Clear error for this field
+    }));
+
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
   const columns = [
     {
@@ -341,6 +450,15 @@ const StationTable = () => {
 
   return (
     <div className="w-full max-w-full p-4">
+      {notification.message && (
+        <div
+          className={`p-2 mb-4 text-white ${
+            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          }`}
+        >
+          {notification.message}
+        </div>
+      )}
       <div className="flex flex-col md:flex-row justify-between items-center mb-4">
         <div className="relative w-full md:w-1/3">
           <input
@@ -500,7 +618,7 @@ const StationTable = () => {
 
       {isEditStation && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[40vw] h-[70vh]  overflow-visible overflow-y-scroll scrollbar-thin scrollbar-track-gray-200 scrollbar-thumb-gray-400">
             {/* Header */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Edit Station</h2>
@@ -535,16 +653,38 @@ const StationTable = () => {
                   ['Use Flag', 'use_flag'],
                 ].map(([label, name], index) => (
                   <div key={index} className="mb-3">
-                    <label className="block text-sm font-medium">{label}</label>
+                    <label className="block text-sm font-medium">
+                      {label}{' '}
+                      {[
+                        'station_code',
+                        'category',
+                        'unit',
+                        'status',
+                        'province',
+                        'city',
+                        'address',
+                        'latitude',
+                        'longitude',
+                        'start_date',
+                      ].includes(name) && (
+                        <span className="text-red-500">*</span>
+                      )}
+                    </label>
                     <input
                       type={name === 'start_date' ? 'date' : 'text'}
                       name={name}
                       value={formData[name] || ''}
-                      className="w-full p-2 border border-gray-300 rounded"
-                      onChange={(e) =>
-                        setFormData({ ...formData, [name]: e.target.value })
-                      }
+                      className={`w-full p-2 border ${
+                        errors[name] ? 'border-red-500' : 'border-gray-300'
+                      } rounded`}
+                      onChange={handleChange} // ✅ Live validation fix
                     />
+
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[name]}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
