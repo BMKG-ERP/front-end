@@ -1,20 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  flexRender,
-} from '@tanstack/react-table';
-import { FaTimes, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import CreateStationForm from './CreateStationForm';
 import UpdateStationForm from './UpdateStationForm';
 import DeleteStationForm from './DeleteStationForm';
 
-import StationTable from './Stations';
+import StationTable from './StationsTable';
 import NotificationModal from './NotificationModal';
 
 function StationPage() {
