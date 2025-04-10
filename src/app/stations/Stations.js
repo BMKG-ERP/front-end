@@ -18,7 +18,6 @@ import {
   FaSortDown,
   FaSearch,
   FaMapMarkerAlt,
-  FaTimes,
 } from 'react-icons/fa';
 
 const SortIcon = ({ column }) => {
@@ -31,40 +30,21 @@ const SortIcon = ({ column }) => {
   );
 };
 
-const StationTable = () => {
+const StationTable = ({
+  openCreateStation,
+  setIsLoading,
+  openEditStation,
+  openDeleteStation,
+}) => {
   const [data, setData] = useState([]);
-  const [sorting, setSorting] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sorting, setSorting] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
     limit: 10,
   });
-  const [isCreateStation, setIsCreateStation] = useState(false);
-  const [isEditStation, setIsEditStation] = useState(false);
-  const [isDeleteStation, setIsDeleteStation] = useState(false);
-  const [formData, setFormData] = useState({
-    station_code: '',
-    category: '',
-    unit: '',
-    description: '',
-    status: '',
-    maps: '',
-    latitude: '',
-    longitude: '',
-    altitude: '',
-    province: '',
-    city: '',
-    district: '',
-    subdistrict: '',
-    network: '',
-    start_date: '',
-    address: '',
-    use_flag: '',
-  });
-  const [notification, setNotification] = useState({ message: '', type: '' });
-  const [errors, setErrors] = useState({});
 
   const router = useRouter();
 
@@ -97,6 +77,7 @@ const StationTable = () => {
         setPagination((prev) => ({
           ...prev,
           page,
+          total: result.pagination.total, // total records
           totalPages: result.pagination.totalPages,
           limit,
         }));
@@ -108,147 +89,6 @@ const StationTable = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const createStation = async () => {
-    try {
-      const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
-      const response = await fetch(url.toString(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-      showNotification(
-        `Succes create new Station with code ${formData.station_code} `,
-        result.message
-      );
-      closeCreateStation(); // Close modal after saving
-    } catch (error) {
-      showNotification(
-        `Failed create new Station with code ${formData.station_code} `,
-        result.message
-      );
-    }
-  };
-
-  const updateStation = async () => {
-    if (validateForm()) {
-      try {
-        const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
-        const response = await fetch(
-          `${url.toString()}${formData.station_code}/`,
-          {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData),
-          }
-        );
-
-        const result = await response.json();
-        if (!result.error && result.code === 200) {
-          showNotification(
-            `Succes update Station ${formData.station_code} `,
-            result.message
-          );
-        } else {
-          showNotification(
-            `Error update new Station ${formData.station_code} `,
-            result.message
-          );
-        }
-        closeEditStation(); // Close modal after update
-      } catch (error) {
-        showNotification(`Server error`, result.message);
-      }
-    }
-  };
-
-  const deleteStation = async () => {
-    try {
-      console.log('formData:', formData); // Debugging
-      console.log('station_code:', formData.station_code); // Debugging
-
-      const stationCode = formData.station_code;
-
-      if (!stationCode) {
-        console.error('Error: station_code is missing or empty!');
-        return; // Stop execution if station_code is invalid
-      }
-
-      const url = `http://127.0.0.1:8000/api/crud/stations/${stationCode}/`;
-
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ station_code: stationCode }), // Only if required
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete station: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      showNotification(
-        `Succes create new Station with code ${formData.station_code} `,
-        result.message
-      );
-      closeEditStation(); // Close modal after deletion
-    } catch (error) {
-      showNotification(
-        `Failed Delete Station ${formData.station_code} `,
-        result.message
-      );
-    }
-  };
-
-  const validateForm = () => {
-    let newErrors = {};
-
-    // Required string fields
-    [
-      'station_code',
-      'category',
-      'unit',
-      'status',
-      'province',
-      'city',
-      'address',
-    ].forEach((field) => {
-      if (!formData[field]?.trim()) {
-        // ✅ FIXED: Use ?. to prevent undefined error
-        newErrors[field] = 'This field is required';
-      }
-    });
-
-    // Latitude validation (-90 to 90)
-    if (
-      formData.latitude === '' ||
-      isNaN(formData.latitude) ||
-      formData.latitude < -90 ||
-      formData.latitude > 90
-    ) {
-      newErrors.latitude = 'Latitude must be between -90 and 90';
-    }
-
-    // Longitude validation (-180 to 180)
-    if (
-      formData.longitude === '' ||
-      isNaN(formData.longitude) ||
-      formData.longitude < -180 ||
-      formData.longitude > 180
-    ) {
-      newErrors.longitude = 'Longitude must be between -180 and 180';
-    }
-
-    // Start date validation
-    if (!formData.start_date) {
-      newErrors.start_date = 'Start date is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Returns true if no errors
   };
 
   useEffect(() => {
@@ -268,11 +108,6 @@ const StationTable = () => {
     );
   };
 
-  const showNotification = (message, type) => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification({ message: '', type: '' }), 3000);
-  };
-
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       fetchData('', '', newPage, pagination.limit, searchQuery);
@@ -287,35 +122,6 @@ const StationTable = () => {
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
     fetchData('', '', 1, pagination.limit, event.target.value);
-  };
-
-  const openCreateStation = () => setIsCreateStation(true);
-  const closeCreateStation = () => setIsCreateStation(false);
-  const openEditStation = (data) => {
-    setFormData(data); // Populate form fields
-    setIsEditStation(true);
-  };
-
-  const closeEditStation = () => setIsEditStation(false);
-  const openDeleteStation = (data) => {
-    setFormData(data);
-    setIsDeleteStation(true);
-  };
-  const closeDeleteStation = () => setIsDeleteStation(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    // Remove error when the user starts typing
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: undefined, // Clear error for this field
-    }));
-
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
   };
 
   const columns = [
@@ -398,9 +204,10 @@ const StationTable = () => {
           <div className="relative group">
             <FaEye
               className="text-xl text-cyan-700 hover:text-cyan-900 cursor-pointer"
-              onClick={() =>
-                router.push(`/stations/${row.original.station_code}`)
-              }
+              onClick={() => {
+                setIsLoading(true);
+                router.push(`/stations/${row.original.station_code}`);
+              }}
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               View
@@ -450,15 +257,6 @@ const StationTable = () => {
 
   return (
     <div className="w-full max-w-full p-4">
-      {notification.message && (
-        <div
-          className={`p-2 mb-4 text-white ${
-            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-          }`}
-        >
-          {notification.message}
-        </div>
-      )}
       <div className="flex flex-col md:flex-row justify-between items-center mb-4">
         <div className="relative w-full md:w-1/3">
           <input
@@ -479,7 +277,7 @@ const StationTable = () => {
           </button>
         </div>
       </div>
-      <div className="relative w-full h-full">
+      <div className="relative w-full">
         <table className="w-full border border-cyan-700 rounded-lg shadow-md">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -534,6 +332,64 @@ const StationTable = () => {
           </tbody>
         </table>
       </div>
+      <div className="flex justify-between items-center mt-4 px-2">
+        {/* Left: Total Records */}
+        <div className="text-sm text-gray-700">
+          Total: {pagination.total || 0} records
+        </div>
+
+        {/* Right: Page Navigation */}
+        <div className="flex items-center gap-1">
+          {/* Previous Page */}
+          <button
+            onClick={() =>
+              setPagination((prev) => ({
+                ...prev,
+                page: Math.max(prev.page - 1, 1),
+              }))
+            }
+            disabled={pagination.page === 1}
+            className="px-2 py-1 border rounded text-sm disabled:opacity-50"
+          >
+            &lt;
+          </button>
+
+          {/* Page numbers */}
+          {Array.from(
+            { length: pagination.totalPages || 1 },
+            (_, i) => i + 1
+          ).map((pageNum) => (
+            <button
+              key={pageNum}
+              onClick={() =>
+                setPagination((prev) => ({ ...prev, page: pageNum }))
+              }
+              className={`px-3 py-1 border rounded text-sm ${
+                pageNum === pagination.page
+                  ? 'bg-cyan-700 text-white'
+                  : 'hover:bg-cyan-100'
+              }`}
+            >
+              {pageNum}
+            </button>
+          ))}
+
+          {/* Next Page */}
+          <button
+            onClick={() =>
+              setPagination((prev) => ({
+                ...prev,
+                page: Math.min(prev.page + 1, pagination.totalPages),
+              }))
+            }
+            disabled={pagination.page === pagination.totalPages}
+            className="px-2 py-1 border rounded text-sm disabled:opacity-50"
+          >
+            &gt;
+          </button>
+        </div>
+      </div>
+
       <div className="flex flex-col md:flex-row justify-between items-center mt-4">
         <div>
           Show{' '}
@@ -549,189 +405,6 @@ const StationTable = () => {
           entries
         </div>
       </div>
-      {/* Modal */}
-      {isCreateStation && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Create Station</h2>
-              <FaTimes
-                className="cursor-pointer"
-                onClick={closeCreateStation}
-              />
-            </div>
-
-            {/* Form */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                createStation();
-              }}
-            >
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  ['Station Code', 'station_code'],
-                  ['Category', 'category'],
-                  ['Unit', 'unit'],
-                  ['Description', 'description'],
-                  ['Status', 'status'],
-                  ['Maps URL', 'maps'],
-                  ['Latitude', 'latitude'],
-                  ['Longitude', 'longitude'],
-                  ['Altitude', 'altitude'],
-                  ['Province', 'province'],
-                  ['City', 'city'],
-                  ['District', 'district'],
-                  ['Subdistrict', 'subdistrict'],
-                  ['Network', 'network'],
-                  ['Start Date', 'start_date'],
-                  ['Address', 'address'],
-                  ['Use Flag', 'use_flag'],
-                ].map(([label, name], index) => (
-                  <div key={index} className="mb-3">
-                    <label className="block text-sm font-medium">{label}</label>
-                    <input
-                      type={name === 'start_date' ? 'date' : 'text'}
-                      name={name}
-                      value={formData[name]}
-                      className="w-full p-2 border border-gray-300 rounded"
-                      onChange={(e) =>
-                        setFormData({ ...formData, [name]: e.target.value })
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Save Button */}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded mt-4 hover:bg-blue-700"
-              >
-                Save
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {isEditStation && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[40vw] h-[70vh]  overflow-visible overflow-y-scroll scrollbar-thin scrollbar-track-gray-200 scrollbar-thumb-gray-400">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Edit Station</h2>
-              <FaTimes className="cursor-pointer" onClick={closeEditStation} />
-            </div>
-
-            {/* Form */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                updateStation();
-              }}
-            >
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  ['Station Code', 'station_code'],
-                  ['Category', 'category'],
-                  ['Unit', 'unit'],
-                  ['Description', 'description'],
-                  ['Status', 'status'],
-                  ['Maps URL', 'maps'],
-                  ['Latitude', 'latitude'],
-                  ['Longitude', 'longitude'],
-                  ['Altitude', 'altitude'],
-                  ['Province', 'province'],
-                  ['City', 'city'],
-                  ['District', 'district'],
-                  ['Subdistrict', 'subdistrict'],
-                  ['Network', 'network'],
-                  ['Start Date', 'start_date'],
-                  ['Address', 'address'],
-                  ['Use Flag', 'use_flag'],
-                ].map(([label, name], index) => (
-                  <div key={index} className="mb-3">
-                    <label className="block text-sm font-medium">
-                      {label}{' '}
-                      {[
-                        'station_code',
-                        'category',
-                        'unit',
-                        'status',
-                        'province',
-                        'city',
-                        'address',
-                        'latitude',
-                        'longitude',
-                        'start_date',
-                      ].includes(name) && (
-                        <span className="text-red-500">*</span>
-                      )}
-                    </label>
-                    <input
-                      type={name === 'start_date' ? 'date' : 'text'}
-                      name={name}
-                      value={formData[name] || ''}
-                      className={`w-full p-2 border ${
-                        errors[name] ? 'border-red-500' : 'border-gray-300'
-                      } rounded`}
-                      onChange={handleChange} // ✅ Live validation fix
-                    />
-
-                    {errors[name] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors[name]}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Save Button */}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded mt-4 hover:bg-blue-700"
-              >
-                Save
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {isDeleteStation && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Delete Station</h2>
-              <FaTimes
-                className="cursor-pointer"
-                onClick={closeCreateStation}
-              />
-            </div>
-            <div className="flex items-center p-4 justify-center">
-              <h1>Are you sure want to delete this station?</h1>
-            </div>
-            <div className="flex items-center p-4 justify-center">
-              <button
-                className="px-4 py-3 rounded-2xl border-2 border-teal-700 mx-5 hover:bg-teal-300"
-                onClick={closeDeleteStation}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 text-white py-3 mx-5 bg-red-600 rounded-2xl hover:bg-red-400"
-                onClick={deleteStation}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

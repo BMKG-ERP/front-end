@@ -29,8 +29,8 @@ const socialLinks = [
 
 function Footer() {
   return (
-    <footer className="bg-[#191919] w-full py-8 px-4 lg:px-24 xl:px-20 flex flex-col items-center text-gray-100 text-sm md:text-lg">
-      <h1 className="font-semibold">Copyright © 2025. All Rights Reserved.</h1>
+    <footer>
+      {/* <h1 className="font-semibold">Copyright © 2025. All Rights Reserved.</h1>
 
       <div className="flex gap-4 mt-5">
         {socialLinks.map(({ href, icon, label }, index) => (
@@ -44,7 +44,7 @@ function Footer() {
             <IonIcon className="w-5 h-5" icon={icon} />
           </a>
         ))}
-      </div>
+      </div> */}
     </footer>
   );
 }
