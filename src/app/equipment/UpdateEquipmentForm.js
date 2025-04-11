@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-const UpdateStationForm = ({
+const UpdateEquipmentForm = ({
   formData,
   setFormData,
-  closeEditStation,
+  closeEditEquipment,
   showNotification,
   validateForm,
   handleChange,
@@ -16,14 +16,14 @@ const UpdateStationForm = ({
   setIsLoading,
   isLoading,
 }) => {
-  const updateStation = async () => {
+  const updateEquipment = async () => {
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
+        const url = new URL('http://127.0.0.1:8000/api/crud/equipment/');
         // const url = new URL('http://127.0.0.1:2000/api/crud/stations/');
         const response = await fetch(
-          `${url.toString()}${formData.station_code}/`,
+          `${url.toString()}${formData.equipment_id}/`,
           {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -34,19 +34,17 @@ const UpdateStationForm = ({
         const result = await response.json();
         setIsLoading(false);
         if (!result.error && result.code === 200) {
-          // setIsEditStation(false);
           showNotification(
             result.code,
-            `Succes update Station ${formData.station_code} `,
+            `Succes update Equipment ${formData.equipment_id} `,
             result.message
           );
 
           setFormData([]);
-          // setIsEditStation(false);
         } else {
           showNotification(
             result.code,
-            `Error update new Station ${formData.station_code} `,
+            `Error update new Equipment ${formData.station_code} `,
             result.message
           );
         }
@@ -63,8 +61,8 @@ const UpdateStationForm = ({
       <div className="bg-white rounded-lg shadow-lg w-[40vw] h-[70vh]  overflow-visible overflow-y-scroll scrollbar-thin scrollbar-track-gray-200 scrollbar-thumb-gray-400">
         {/* Header */}
         <div className="sticky top-0 z-20 p-6 bg-white flex justify-between items-center mb-4 pb-2 border-b">
-          <h2 className="text-xl font-bold">Edit Station</h2>
-          <FaTimes className="cursor-pointer" onClick={closeEditStation} />
+          <h2 className="text-xl font-bold">Edit Equipment</h2>
+          <FaTimes className="cursor-pointer" onClick={closeEditEquipment} />
         </div>
 
         {/* Form */}
@@ -72,44 +70,38 @@ const UpdateStationForm = ({
           onSubmit={(e) => {
             e.preventDefault();
             if (validateForm()) {
-              updateStation();
+              updateEquipment();
             }
           }}
         >
           <div className="grid grid-cols-2 gap-4 p-6">
             {[
+              ['Equipment ID', 'equipment_id'],
+              ['Name', 'name'],
+              ['Serial Number', 'serial_number'],
               ['Station Code', 'station_code'],
               ['Category', 'category'],
-              ['Unit', 'unit'],
               ['Description', 'description'],
+              ['Firmware Version', 'firmware_version'],
+              ['Input', 'input'],
+              ['Installation Date', 'installation_date'],
+              ['Manufacture', 'manufacture'],
+              ['Sampling Rate', 'sampling_rate'],
+              ['Type', 'type'],
               ['Status', 'status'],
-              ['Maps URL', 'maps'],
-              ['Latitude', 'latitude'],
-              ['Longitude', 'longitude'],
-              ['Altitude', 'altitude'],
-              ['Province', 'province'],
-              ['City', 'city'],
-              ['District', 'district'],
-              ['Subdistrict', 'subdistrict'],
-              ['Network', 'network'],
-              ['Start Date', 'start_date'],
-              ['Address', 'address'],
+              ['Supplier', 'supplier'],
+              ['Technician', 'technician'],
+              ['Calibration Date', 'calibration_date'],
               ['Use Flag', 'use_flag'],
             ].map(([label, name], index) => (
               <div key={index} className="mb-3">
                 <label className="block text-sm font-medium">
                   {label}{' '}
                   {[
-                    'station_code',
-                    'category',
-                    'unit',
-                    'status',
-                    'province',
-                    'city',
-                    'address',
-                    'latitude',
-                    'longitude',
-                    'start_date',
+                    'equipment_id',
+                    'name',
+                    'serial_number',
+                    'description',
                   ].includes(name) && <span className="text-red-500">*</span>}
                 </label>
                 <input
@@ -151,4 +143,4 @@ const UpdateStationForm = ({
   );
 };
 
-export default UpdateStationForm;
+export default UpdateEquipmentForm;

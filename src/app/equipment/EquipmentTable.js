@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   useReactTable,
   getCoreRowModel,
@@ -29,11 +30,12 @@ const SortIcon = ({ column }) => {
   );
 };
 
-const EquipmentTable = ({ stationCode }) => {
-  const decodedStationCode = stationCode
-    ? decodeURIComponent(stationCode).toUpperCase()
-    : '';
-
+const EquipmentTable = ({
+  openCreateEquipment,
+  setIsLoading,
+  openEditEquipment,
+  openDeleteEquipment,
+}) => {
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,11 +46,8 @@ const EquipmentTable = ({ stationCode }) => {
     limit: 10,
   });
 
-  useEffect(() => {
-    if (decodedStationCode) {
-      fetchData();
-    }
-  }, [decodedStationCode]);
+  const router = useRouter();
+
   const fetchData = async (
     sort = '',
     order = '',
@@ -230,7 +229,7 @@ const EquipmentTable = ({ stationCode }) => {
             <FaEye
               className="text-xl text-cyan-700 hover:text-cyan-900 cursor-pointer"
               onClick={() =>
-                router.push(`/stations/${row.original.station_code}`)
+                router.push(`/equipment/${row.original.equipment_id}`)
               }
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -241,7 +240,7 @@ const EquipmentTable = ({ stationCode }) => {
           <div className="relative group">
             <FaEdit
               className="text-xl text-emerald-700 hover:text-emerald-900 cursor-pointer"
-              onClick={() => console.log('Edit', row.original)}
+              onClick={() => openEditEquipment(row.original)}
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               Edit
@@ -251,7 +250,7 @@ const EquipmentTable = ({ stationCode }) => {
           <div className="relative group">
             <FaTrash
               className="text-xl text-rose-700 hover:text-rose-900 cursor-pointer"
-              onClick={() => console.log('Delete', row.original)}
+              onClick={() => openDeleteEquipment(row.original)}
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               Delete
@@ -288,6 +287,14 @@ const EquipmentTable = ({ stationCode }) => {
             className="w-full p-2 border border-gray-300 rounded"
           />
           <FaSearch className="absolute right-2 top-2 text-gray-400" />
+        </div>
+        <div>
+          <button
+            className="bg-teal-800 rounded-xl p-3 text-white hover:bg-teal-600 "
+            onClick={openCreateEquipment}
+          >
+            Create Equipment
+          </button>
         </div>
       </div>
       <div className="relative w-full h-full">
