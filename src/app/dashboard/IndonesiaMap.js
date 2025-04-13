@@ -23,7 +23,9 @@ const IndonesiaMap = ({ interactive = false }) => {
   // Fetch CSV Data
   const fetchLocations = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/stations');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations`
+      );
       const data = await response.json(); // Parse JSON response
 
       console.log('API Response:', data); // Debugging

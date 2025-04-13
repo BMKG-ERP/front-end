@@ -26,7 +26,7 @@ const DeleteStationForm = ({
         return; // Stop execution if station_code is invalid
       }
 
-      const url = `http://127.0.0.1:8000/api/crud/stations/${stationCode}/`;
+      const url = `${process.env.NEXT_PUBLIC_LOCAL_API}/api/crud/stations/${stationCode}/`;
 
       const response = await fetch(url, {
         method: 'DELETE',

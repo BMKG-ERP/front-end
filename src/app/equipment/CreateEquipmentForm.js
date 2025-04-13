@@ -19,7 +19,9 @@ const CreateEquipmentForm = ({
   const createEquipment = async () => {
     setIsLoading(true);
     try {
-      const url = new URL('http://127.0.0.1:8000/api/crud/equipments/');
+      const url = new URL(
+        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/crud/equipments/`
+      );
       const response = await fetch(url.toString(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
