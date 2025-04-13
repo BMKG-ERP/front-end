@@ -25,7 +25,7 @@ const EvaluationData = () => {
   const fetchEvaluationData = async () => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/api/stations/evaluation-status`
+        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations/evaluation-status`
       );
       const data = await response.json();
 

@@ -20,7 +20,9 @@ const UpdateStationForm = ({
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const url = new URL('http://127.0.0.1:8000/api/crud/stations/');
+        const url = new URL(
+          `${process.env.NEXT_PUBLIC_LOCAL_API}/api/crud/stations/`
+        );
         // const url = new URL('http://127.0.0.1:2000/api/crud/stations/');
         const response = await fetch(
           `${url.toString()}${formData.station_code}/`,

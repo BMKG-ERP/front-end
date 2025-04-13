@@ -21,7 +21,7 @@ const EquipmentDetail = ({ equipmentId }) => {
     setLoading(true);
     try {
       const url = new URL(
-        `http://127.0.0.1:8000/api/crud/equipments/${decodedEquipmentId}`
+        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/crud/equipments/${decodedEquipmentId}`
       );
 
       const response = await fetch(url.toString());

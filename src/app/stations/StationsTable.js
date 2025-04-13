@@ -56,7 +56,7 @@ const StationTable = ({
   ) => {
     setLoading(true);
     try {
-      const url = new URL('http://127.0.0.1:8000/api/stations');
+      const url = new URL(`${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations`);
       if (sort && order) {
         url.searchParams.append('sort', sort);
         url.searchParams.append('order', order);

@@ -21,7 +21,7 @@ const EquipmentDetail = ({ stationCode }) => {
     setLoading(true);
     try {
       const url = new URL(
-        `http://127.0.0.1:8000/api/stations-detail/${decodedStationCode}/detail/`
+        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations-detail/${decodedStationCode}/detail/`
       );
 
       const response = await fetch(url.toString());
