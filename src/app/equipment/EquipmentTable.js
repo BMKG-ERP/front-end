@@ -357,21 +357,6 @@ const EquipmentTable = ({
           </tbody>
         </table>
       </div>
-      <div className="flex flex-col md:flex-row justify-between items-center mt-4">
-        <div>
-          Show{' '}
-          <select
-            value={pagination.limit}
-            onChange={handleLimitChange}
-            className="border p-2"
-          >
-            {' '}
-            <option value={5}>5</option> <option value={10}>10</option>{' '}
-            <option value={20}>20</option> <option value={50}>50</option>{' '}
-          </select>{' '}
-          entries
-        </div>
-      </div>
     </div>
   );
 };

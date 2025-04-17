@@ -2,12 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-} from '@tanstack/react-table';
+
 import {
   FaEdit,
   FaTrash,
@@ -15,9 +10,9 @@ import {
   FaSort,
   FaSortUp,
   FaSortDown,
-  FaSearch,
   FaMapMarkerAlt,
 } from 'react-icons/fa';
+import Table from '@/components/table/Table';
 
 const SortIcon = ({ column }) => {
   return column.getIsSorted() === 'asc' ? (
@@ -37,12 +32,14 @@ const StationTable = ({
 }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingTable, setLoadingTable] = useState(true);
   const [sorting, setSorting] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
-    limit: 10,
+    totalRows: 0,
+    limit: -1,
   });
 
   const router = useRouter();
@@ -51,10 +48,9 @@ const StationTable = ({
     sort = '',
     order = '',
     page = 1,
-    limit = 10,
+    limit = -1,
     search = ''
   ) => {
-    setLoading(true);
     try {
       const url = new URL(`${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations/`);
       if (sort && order) {
@@ -69,30 +65,39 @@ const StationTable = ({
 
       const response = await fetch(url.toString());
       const result = await response.json();
-      console.log('Fetched Data:', result.data.length); // Debugging log
 
       if (!result.error && result.code === 200) {
-        setData(result.data || []);
-        setPagination((prev) => ({
-          ...prev,
-          page,
-          total: result.pagination.total, // total records
-          totalPages: result.pagination.totalPages,
-          limit,
-        }));
+        return {
+          data: result.data || [],
+          pagination: result.pagination,
+        };
       } else {
         console.error('Error fetching stations:', result.message);
+        return {
+          data: [],
+          pagination: {
+            total: 0,
+            totalRows: 0,
+            totalPages: 1,
+          },
+        };
       }
     } catch (error) {
       console.error('Error fetching stations:', error);
-    } finally {
-      setLoading(false);
+      return {
+        data: [],
+        pagination: {
+          total: 0,
+          totalRows: 0,
+          totalPages: 1,
+        },
+      };
     }
   };
 
   useEffect(() => {
     fetchData('', '', pagination.page, pagination.limit, searchQuery);
-  }, [pagination.page, pagination.limit, searchQuery]); // Added dependencies
+  }, [pagination.page, pagination.limit]); // Added dependencies
 
   const handleSort = (column) => {
     const currentSorting = sorting.find((s) => s.id === column.id);
@@ -105,12 +110,6 @@ const StationTable = ({
       pagination.limit,
       searchQuery
     );
-  };
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-      fetchData('', '', newPage, pagination.limit, searchQuery);
-    }
   };
 
   const handleLimitChange = (event) => {
@@ -245,28 +244,9 @@ const StationTable = ({
     description: 'text-gray-700', // Gray text
   };
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: { sorting },
-    onSortingChange: setSorting,
-  });
-
   return (
     <div className="w-full max-w-full p-4">
       <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-        <div className="relative w-full md:w-1/3">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search stations..."
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-          <FaSearch className="absolute right-2 top-2 text-gray-400" />
-        </div>
         <div>
           <button
             className="bg-teal-800 rounded-xl p-3 text-white hover:bg-teal-600 "
@@ -276,133 +256,13 @@ const StationTable = ({
           </button>
         </div>
       </div>
-      <div className="relative w-full">
-        <table className="w-full border border-cyan-700 rounded-lg shadow-md">
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="text-cyan-900 font-bold">
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="border-y p-3 py-5 text-center" // Center text alignment
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="bg-white border-cyan-700">
-            {loading ? (
-              <tr>
-                <td colSpan={columns.length} className="text-center py-20">
-                  Loading...
-                </td>
-              </tr>
-            ) : (
-              table.getRowModel().rows.map((row, index) => (
-                <tr
-                  key={row.id}
-                  //   className={index % 2 === 0 ? 'bg-blue-50' : 'bg-white'}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    // Get the column ID and corresponding style
-                    const columnId = cell.column.id;
-                    const cellStyle = colStyling[columnId] || ''; // Default to no extra style if not specified
-
-                    return (
-                      <td
-                        key={cell.id}
-                        className={`border-y p-4 px-5 border-cyan-700 ${cellStyle}`} // Apply specific styles
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      <div className="flex justify-between items-center mt-4 px-2">
-        {/* Left: Total Records */}
-        <div className="text-sm text-gray-700">
-          Total: {pagination.total || 0} records
-        </div>
-
-        {/* Right: Page Navigation */}
-        <div className="flex items-center gap-1">
-          {/* Previous Page */}
-          <button
-            onClick={() =>
-              setPagination((prev) => ({
-                ...prev,
-                page: Math.max(prev.page - 1, 1),
-              }))
-            }
-            disabled={pagination.page === 1}
-            className="px-2 py-1 border rounded text-sm disabled:opacity-50"
-          >
-            &lt;
-          </button>
-
-          {/* Page numbers */}
-          {Array.from(
-            { length: pagination.totalPages || 1 },
-            (_, i) => i + 1
-          ).map((pageNum) => (
-            <button
-              key={pageNum}
-              onClick={() =>
-                setPagination((prev) => ({ ...prev, page: pageNum }))
-              }
-              className={`px-3 py-1 border rounded text-sm ${
-                pageNum === pagination.page
-                  ? 'bg-cyan-700 text-white'
-                  : 'hover:bg-cyan-100'
-              }`}
-            >
-              {pageNum}
-            </button>
-          ))}
-
-          {/* Next Page */}
-          <button
-            onClick={() =>
-              setPagination((prev) => ({
-                ...prev,
-                page: Math.min(prev.page + 1, pagination.totalPages),
-              }))
-            }
-            disabled={pagination.page === pagination.totalPages}
-            className="px-2 py-1 border rounded text-sm disabled:opacity-50"
-          >
-            &gt;
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row justify-between items-center mt-4">
-        <div>
-          Show{' '}
-          <select
-            value={pagination.limit}
-            onChange={handleLimitChange}
-            className="border p-2"
-          >
-            {' '}
-            <option value={5}>5</option> <option value={10}>10</option>{' '}
-            <option value={20}>20</option> <option value={50}>50</option>{' '}
-          </select>{' '}
-          entries
-        </div>
+      <div className="relative w-full h-full">
+        <Table
+          columns={columns}
+          dataTable={true}
+          fetchData={fetchData}
+          colStyling={colStyling}
+        />
       </div>
     </div>
   );
