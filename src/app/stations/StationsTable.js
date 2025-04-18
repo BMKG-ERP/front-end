@@ -189,11 +189,11 @@ const StationTable = ({
   ];
 
   const colStyling = {
-    station_code: 'font-bold text-teal-800', // Bold & blue
-    category: 'text-gray-700', // Green text
-    city: 'text-gray-700', // Semi-bold
-    province: 'text-gray-700', // Italic & purple
-    description: 'text-gray-700', // Gray text
+    station_code: 'font-bold text-teal-800',
+    category: 'text-gray-700',
+    city: 'text-gray-700',
+    province: 'text-gray-700',
+    description: 'text-gray-700',
   };
 
   return (

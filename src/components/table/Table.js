@@ -9,6 +9,7 @@ import {
 import Pagination from './Pagination';
 import Limit from './Limit';
 import { FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
+import FilterDropdown from './FilterDropdown';
 
 const Table = ({
   columns,
@@ -37,6 +38,10 @@ const Table = ({
 
   const [fullData, setFullData] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilters, setCategoryFilters] = useState([]);
+  const [pendingCategoryFilters, setPendingCategoryFilters] = useState([]);
+
+  const categories = ['Stasiun Gempa Bumi', 'DUMMY CATEGORY'];
 
   // Client-side data handling
   useEffect(() => {
@@ -61,7 +66,14 @@ const Table = ({
 
     let filtered = [...fullData];
 
-    // Search filter
+    // ✅ Category filter (apply only if selected)
+    if (categoryFilters.length > 0) {
+      filtered = filtered.filter(
+        (row) => categoryFilters.includes(row.category) // Replace `row.category` with actual column name if different
+      );
+    }
+
+    // ✅ Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((row) =>
@@ -71,7 +83,7 @@ const Table = ({
       );
     }
 
-    // Sort the filtered data
+    // ✅ Sorting
     if (sorting.length > 0) {
       const { id, desc } = sorting[0];
       filtered.sort((a, b) => {
@@ -109,6 +121,7 @@ const Table = ({
     pagination.limit,
     searchQuery,
     sorting,
+    categoryFilters, // ✅ include as dependency
   ]);
 
   const SortIcon = ({ column }) => {
@@ -170,6 +183,15 @@ const Table = ({
           </div>
         )}
       </div>
+      <div className="mb-4">
+        <FilterDropdown
+          pendingCategoryFilters={pendingCategoryFilters}
+          setPendingCategoryFilters={setPendingCategoryFilters}
+          setCategoryFilters={setCategoryFilters}
+          setPagination={setPagination}
+          categories={categories}
+        />
+      </div>
 
       <table className="w-full border border-gray-600 bg-teal-800 shadow-md">
         <thead>
@@ -219,14 +241,10 @@ const Table = ({
             </tr>
           ) : (
             table.getRowModel().rows.map((row, index) => (
-              <tr
-                key={row.id}
-                //   className={index % 2 === 0 ? 'bg-blue-50' : 'bg-white'}
-              >
+              <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => {
-                  // Get the column ID and corresponding style
                   const columnId = cell.column.id;
-                  const cellStyle = colStyling[columnId] || ''; // Default to no extra style if not specified
+                  const cellStyle = colStyling[columnId] || '';
 
                   return (
                     <td

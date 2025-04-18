@@ -19,10 +19,10 @@ const Pagination = ({ pagination, onPageChange }) => {
       <button
         key={i}
         onClick={() => onPageChange(i)}
-        className={`px-3 py-1 border rounded text-sm ${
+        className={`px-3 py-1 border rounded text-sm text-black hover:text-white ${
           i === current
-            ? 'bg-cyan-700 text-white font-bold'
-            : 'hover:bg-cyan-100'
+            ? 'bg-teal-800 text-white font-bold'
+            : 'hover:bg-teal-800'
         }`}
       >
         {i}
@@ -37,7 +37,7 @@ const Pagination = ({ pagination, onPageChange }) => {
         <button
           key="end-ellipsis"
           onClick={() => onPageChange(end + 1)}
-          className="px-3 py-1 border rounded text-sm hover:bg-cyan-100"
+          className="px-3 py-1 border rounded text-sm hover:bg-teal-800"
         >
           ...
         </button>
@@ -49,8 +49,8 @@ const Pagination = ({ pagination, onPageChange }) => {
         onClick={() => onPageChange(total)}
         className={`px-3 py-1 border rounded text-sm ${
           current === total
-            ? 'bg-cyan-700 text-white font-bold'
-            : 'hover:bg-cyan-100'
+            ? 'bg-teal-800 text-white font-bold'
+            : 'hover:bg-teal-800'
         }`}
       >
         {total}
