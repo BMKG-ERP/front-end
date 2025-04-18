@@ -3,26 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-import {
-  FaEdit,
-  FaTrash,
-  FaEye,
-  FaSort,
-  FaSortUp,
-  FaSortDown,
-  FaMapMarkerAlt,
-} from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye, FaMapMarkerAlt } from 'react-icons/fa';
 import Table from '@/components/table/Table';
-
-const SortIcon = ({ column }) => {
-  return column.getIsSorted() === 'asc' ? (
-    <FaSortUp />
-  ) : column.getIsSorted() === 'desc' ? (
-    <FaSortDown />
-  ) : (
-    <FaSort />
-  );
-};
 
 const StationTable = ({
   openCreateStation,
@@ -30,17 +12,14 @@ const StationTable = ({
   openEditStation,
   openDeleteStation,
 }) => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingTable, setLoadingTable] = useState(true);
-  const [sorting, setSorting] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
     totalRows: 0,
     limit: -1,
   });
+
+  const dataTable = true;
 
   const router = useRouter();
 
@@ -96,91 +75,64 @@ const StationTable = ({
   };
 
   useEffect(() => {
-    fetchData('', '', pagination.page, pagination.limit, searchQuery);
-  }, [pagination.page, pagination.limit]); // Added dependencies
-
-  const handleSort = (column) => {
-    const currentSorting = sorting.find((s) => s.id === column.id);
-    const newOrder = currentSorting?.desc ? 'asc' : 'desc';
-    setSorting([{ id: column.id, desc: newOrder === 'desc' }]);
-    fetchData(
-      column.id,
-      newOrder,
-      pagination.page,
-      pagination.limit,
-      searchQuery
-    );
-  };
-
-  const handleLimitChange = (event) => {
-    const newLimit = parseInt(event.target.value, 10);
-    fetchData('', '', 1, newLimit, searchQuery);
-  };
-
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-    fetchData('', '', 1, pagination.limit, event.target.value);
-  };
+    fetchData('', '', '', '', '');
+  });
 
   const columns = [
     {
+      id: 'no',
+      header: 'No',
+      cell: ({ row }) => {
+        return (pagination.page - 1) * pagination.limit + row.index + 1;
+      },
+    },
+    {
       accessorKey: 'station_code',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      enableSorting: true,
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           Station Code
-          <SortIcon column={column} />
         </div>
       ),
     },
     {
       accessorKey: 'category',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      enableSorting: true,
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           Category
-          <SortIcon column={column} />
         </div>
       ),
     },
     {
       accessorKey: 'city',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      enableSorting: true,
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           City
-          <SortIcon column={column} />
         </div>
       ),
     },
     {
       accessorKey: 'province',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      enableSorting: true,
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           Province
-          <SortIcon column={column} />
         </div>
       ),
     },
     {
       accessorKey: 'description',
       header: 'Description',
+      enableSorting: true,
     },
     {
       id: 'location',
       header: 'Location',
       cell: ({ row }) => (
         <button
-          className="text-cyan-700 hover:text-cyan-900 cursor-pointer flex items-center justify-center"
+          className="text-teal-700 hover:text-teal-900 cursor-pointer flex items-center justify-center"
           onClick={() => {
             if (typeof window !== 'undefined') {
               window.open(
@@ -201,7 +153,7 @@ const StationTable = ({
         <div className="flex gap-4 items-center justify-center">
           <div className="relative group">
             <FaEye
-              className="text-xl text-cyan-700 hover:text-cyan-900 cursor-pointer"
+              className="text-xl text-teal-700 hover:text-teal-900 cursor-pointer"
               onClick={() => {
                 setIsLoading(true);
                 router.push(`/stations/${row.original.station_code}`);
@@ -214,7 +166,7 @@ const StationTable = ({
 
           <div className="relative group">
             <FaEdit
-              className="text-xl text-emerald-700 hover:text-emerald-900 cursor-pointer"
+              className="text-xl text-teal-700 hover:text-teal-900 cursor-pointer"
               onClick={() => openEditStation(row.original)}
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -237,7 +189,7 @@ const StationTable = ({
   ];
 
   const colStyling = {
-    station_code: 'font-bold text-blue-950', // Bold & blue
+    station_code: 'font-bold text-teal-800', // Bold & blue
     category: 'text-gray-700', // Green text
     city: 'text-gray-700', // Semi-bold
     province: 'text-gray-700', // Italic & purple
@@ -246,22 +198,15 @@ const StationTable = ({
 
   return (
     <div className="w-full max-w-full p-4">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-        <div>
-          <button
-            className="bg-teal-800 rounded-xl p-3 text-white hover:bg-teal-600 "
-            onClick={openCreateStation}
-          >
-            CREATE STATION
-          </button>
-        </div>
-      </div>
       <div className="relative w-full h-full">
         <Table
           columns={columns}
-          dataTable={true}
+          dataTable={dataTable}
           fetchData={fetchData}
           colStyling={colStyling}
+          createButton={true}
+          createFunction={openCreateStation}
+          createName={'Create Station'}
         />
       </div>
     </div>

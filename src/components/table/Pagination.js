@@ -13,23 +13,6 @@ const Pagination = ({ pagination, onPageChange }) => {
     start = Math.max(end - 3, 1);
   }
 
-  // // First page button
-  // if (current > 3) {
-  //   pages.push(
-  //     <button
-  //       key={1}
-  //       onClick={() => onPageChange(1)}
-  //       className={`px-3 py-1 border rounded text-sm ${
-  //         current === 1
-  //           ? 'bg-cyan-700 text-white font-bold'
-  //           : 'hover:bg-cyan-100'
-  //       }`}
-  //     >
-  //       1
-  //     </button>
-  //   );
-  // }
-
   // Page buttons in range
   for (let i = start; i <= end; i++) {
     pages.push(

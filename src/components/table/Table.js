@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-table';
 import Pagination from './Pagination';
 import Limit from './Limit';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 
 const Table = ({
   columns,
@@ -17,6 +17,9 @@ const Table = ({
   initialData = [],
   data: dataProp,
   colStyling,
+  createButton,
+  createFunction,
+  createName,
 }) => {
   const [data, setData] = useState(dataProp || initialData || []);
   const [sorting, setSorting] = useState([]);
@@ -53,46 +56,12 @@ const Table = ({
     }
   }, [dataTable, fetchData]);
 
-  // Server-side data handling
-  useEffect(() => {
-    if (!dataTable && typeof fetchData === 'function') {
-      fetchData({
-        sort: sorting[0]?.id,
-        order: sorting[0]?.desc ? 'desc' : 'asc',
-        page: pagination.page,
-        limit: pagination.limit,
-        search: searchQuery,
-      }).then((res) => {
-        setData(res.data || []);
-        setPagination((prev) => {
-          if (
-            prev.totalRows !== res.pagination.totalRows ||
-            prev.totalPages !== res.pagination.totalPages
-          ) {
-            return {
-              ...prev,
-              totalRows: res.pagination.totalRows,
-              totalPages: res.pagination.totalPages,
-            };
-          }
-          return prev;
-        });
-      });
-    }
-  }, [
-    dataTable,
-    fetchData,
-    sorting,
-    pagination.page,
-    pagination.limit,
-    searchQuery,
-  ]);
-
   const filteredData = useMemo(() => {
     if (!dataTable) return data;
 
     let filtered = [...fullData];
 
+    // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((row) =>
@@ -100,6 +69,19 @@ const Table = ({
           String(val).toLowerCase().includes(query)
         )
       );
+    }
+
+    // Sort the filtered data
+    if (sorting.length > 0) {
+      const { id, desc } = sorting[0];
+      filtered.sort((a, b) => {
+        const aVal = a[id];
+        const bVal = b[id];
+
+        if (aVal < bVal) return desc ? 1 : -1;
+        if (aVal > bVal) return desc ? -1 : 1;
+        return 0;
+      });
     }
 
     const totalRows = filtered.length;
@@ -120,7 +102,24 @@ const Table = ({
     }
 
     return paged;
-  }, [dataTable, fullData, pagination.page, pagination.limit, searchQuery]);
+  }, [
+    dataTable,
+    fullData,
+    pagination.page,
+    pagination.limit,
+    searchQuery,
+    sorting,
+  ]);
+
+  const SortIcon = ({ column }) => {
+    return column.getIsSorted() === 'asc' ? (
+      <FaSortUp />
+    ) : column.getIsSorted() === 'desc' ? (
+      <FaSortDown />
+    ) : (
+      <FaSort />
+    );
+  };
 
   const table = useReactTable({
     data: dataTable ? filteredData : data,
@@ -145,39 +144,73 @@ const Table = ({
 
   return (
     <>
-      <div className="relative w-full md:w-1/3">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setPagination((prev) => ({ ...prev, page: 1 }));
-          }}
-          placeholder="Search stations..."
-          className="w-full p-2 border border-gray-300 rounded"
-        />
-        <FaSearch className="absolute right-2 top-2 text-gray-400" />
+      <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+        <div className="relative w-full md:w-1/3 mb-2 md:mb-0">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPagination((prev) => ({ ...prev, page: 1 }));
+            }}
+            placeholder="Search stations..."
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+          <FaSearch className="absolute right-2 top-3 text-gray-400" />
+        </div>
+
+        {createButton && (
+          <div className="mt-2 md:mt-0">
+            <button
+              className="bg-teal-800 rounded-xl p-3 text-white hover:bg-teal-600"
+              onClick={createFunction}
+            >
+              {createName}
+            </button>
+          </div>
+        )}
       </div>
 
-      <table className="w-full border border-cyan-700 rounded-lg shadow-md">
+      <table className="w-full border border-gray-600 bg-teal-800 shadow-md">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id} className="text-cyan-900 font-bold">
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  className="border-y p-3 py-5 text-center" // Center text alignment
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                </th>
-              ))}
+            <tr
+              key={headerGroup.id}
+              className="text-white
+             font-bold
+             border-gray-400
+             "
+            >
+              {headerGroup.headers.map((header) => {
+                const isSorted = header.column.getIsSorted(); // false | 'asc' | 'desc'
+
+                return (
+                  <th
+                    key={header.id}
+                    className="border-y p-3 py-5 text-center cursor-pointer select-none"
+                    onClick={
+                      header.column.getCanSort()
+                        ? header.column.getToggleSortingHandler()
+                        : undefined
+                    }
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {header.column.getCanSort() && (
+                        <SortIcon column={header.column} />
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           ))}
         </thead>
-        <tbody className="bg-white border-cyan-700">
+
+        <tbody className="bg-white border-gray-400">
           {loading ? (
             <tr>
               <td colSpan={columns.length} className="text-center py-20">
@@ -198,7 +231,7 @@ const Table = ({
                   return (
                     <td
                       key={cell.id}
-                      className={`border-y p-4 px-5 border-cyan-700 ${cellStyle}`} // Apply specific styles
+                      className={`border-y p-4 px-5 border-gray-400 ${cellStyle}`} // Apply specific styles
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
