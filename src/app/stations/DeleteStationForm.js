@@ -26,7 +26,9 @@ const DeleteStationForm = ({
         return; // Stop execution if station_code is invalid
       }
 
-      const url = `${process.env.NEXT_PUBLIC_LOCAL_API}/api/crud/stations/${stationCode}/`;
+      const url = `${
+        process.env.NEXT_PUBLIC_LOCAL_API + process.env.NEXT_PUBLIC_STATION_API
+      }/${stationCode}/`;
 
       const response = await fetch(url, {
         method: 'DELETE',

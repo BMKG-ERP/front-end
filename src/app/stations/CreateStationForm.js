@@ -26,7 +26,12 @@ const CreateStationForm = ({
         longitude: parseFloat(formData.longitude), // Ensure it's a number
         altitude: parseFloat(formData.altitude), // Ensure it's a number
       };
-      const url = new URL(`${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations/`);
+      const url = new URL(
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_STATION_API
+        }`
+      );
       const response = await fetch(url.toString(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -21,8 +21,24 @@ const CreateEquipmentForm = ({
     setIsLoading(true);
     try {
       const url = new URL(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_EQUIPMENT_API
+        }`
+        // `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
       );
+
+      if (formData.calibration_date) {
+        formData.calibration_date = new Date(formData.calibration_date)
+          .toISOString()
+          .split('T')[0];
+      }
+      if (formData.installation_date) {
+        formData.installation_date = new Date(formData.installation_date)
+          .toISOString()
+          .split('T')[0];
+      }
+
       const response = await fetch(url.toString(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,17 +87,21 @@ const CreateEquipmentForm = ({
           <div className="grid grid-cols-2 gap-4 p-6">
             {[
               ['Equipment ID', 'equipment_id'],
-              ['Name', 'name', 'equipment-names'],
+              ['Name', 'name', `${process.env.NEXT_PUBLIC_EQUIPMENT_NAME_API}`],
               ['Serial Number', 'serial_number'],
               ['Station Code', 'station_code'],
-              ['Category', 'category', 'categories'],
+              [
+                'Category',
+                'category',
+                `${process.env.NEXT_PUBLIC_EQUIPMENT_CATEGORIES_API}`,
+              ],
               ['Description', 'description'],
               ['Firmware Version', 'firmware_version'],
               ['Input', 'input'],
               ['Installation Date', 'installation_date'],
               ['Manufacture', 'manufacture'],
               ['Sampling Rate', 'sampling_rate'],
-              ['Type', 'type', 'types'],
+              ['Type', 'type', `${process.env.NEXT_PUBLIC_EQUIPMENT_TYPE_API}`],
               ['Status', 'status'],
               ['Supplier', 'supplier'],
               ['Technician', 'technician'],
@@ -91,7 +111,7 @@ const CreateEquipmentForm = ({
                 <label className="block text-sm font-medium">{label}</label>
                 {apiName ? ( // Check if there's an API for this field
                   <SelectDropdown
-                    url={`${process.env.NEXT_PUBLIC_LOCAL_API}/api/${apiName}/`} // Dynamically set API URL
+                    url={`${process.env.NEXT_PUBLIC_LOCAL_API}${apiName}`} // Dynamically set API URL
                     data={formData[name] ? [formData[name]] : []}
                     setData={(selected) =>
                       setFormData({ ...formData, [name]: selected[0] || '' })
@@ -110,18 +130,19 @@ const CreateEquipmentForm = ({
                     } rounded`}
                     onChange={handleChange}
                   />
-                ) : name === 'latitude' ||
-                  name === 'longitude' ||
-                  name === 'altitude' ? ( // Handle Latitude, Longitude, and Altitude as number inputs
-                  <input
-                    type="number"
-                    name={name}
-                    value={formData[name] || ''}
-                    className={`w-full p-2 border ${
-                      errors[name] ? 'border-red-500' : 'border-gray-300'
-                    } rounded`}
-                    onChange={handleChange}
-                    step="any" // Allow decimal values
+                ) : name === 'status' ? ( // Handle Latitude, Longitude, and Altitude as number inputs
+                  <SelectDropdown
+                    options={[
+                      { label: 'Active', value: 'active' },
+                      { label: 'Non Active', value: 'inactive' },
+                      { label: 'Maintenance', value: 'maintenance' },
+                      { label: 'Decomissioned', value: 'decomissioned' },
+                    ]}
+                    data={formData.status ? [formData.status] : []}
+                    setData={(selected) =>
+                      setFormData({ ...formData, role: selected[0] || '' })
+                    }
+                    optionKey="label"
                   />
                 ) : (
                   <input

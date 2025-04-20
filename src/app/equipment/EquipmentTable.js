@@ -23,7 +23,11 @@ const EquipmentTable = ({
       setLoading(true);
       try {
         const url = new URL(
-          `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
+          `${
+            process.env.NEXT_PUBLIC_LOCAL_API +
+            process.env.NEXT_PUBLIC_EQUIPMENT_API
+          }`
+          // `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
         );
         if (sort && order) {
           url.searchParams.append('sort', sort);
@@ -75,7 +79,10 @@ const EquipmentTable = ({
   const fetchCategories = useCallback(async () => {
     try {
       const url = new URL(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/categories/`
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_EQUIPMENT_CATEGORIES_API
+        }`
       );
 
       const response = await fetch(url.toString());

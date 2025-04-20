@@ -59,7 +59,10 @@ const EquipmentTable = ({ stationCode }) => {
     setLoading(true);
     try {
       const url = new URL(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations-detail/${decodedStationCode}/equipments/`
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_STATION_APII
+        }${decodedStationCode}/equipments/`
       );
       if (sort && order) {
         url.searchParams.append('sort', sort);

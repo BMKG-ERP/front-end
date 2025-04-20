@@ -3,19 +3,28 @@ import { FaChevronDown } from 'react-icons/fa';
 
 const SelectDropdown = ({
   url,
-  data,
+  data = [], // selected item, as before
   setData,
   optionKey,
   valueKey,
-  placeholder,
+  placeholder = 'Select...',
+  options: staticOptions = [], // new static options
 }) => {
   const [open, setOpen] = useState(false);
-  const [options, setOptions] = useState([]);
+  const [options, setOptions] = useState(staticOptions);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Fetch options if URL is provided
   useEffect(() => {
-    async function fetchOptions() {
+    if (!url) {
+      setOptions(staticOptions || []);
+      return;
+    }
+
+    const fetchOptions = async () => {
+      setLoading(true);
       try {
         const response = await fetch(url);
         const result = await response.json();
@@ -26,14 +35,17 @@ const SelectDropdown = ({
         }
       } catch (error) {
         console.error('Failed to fetch options:', error);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
     fetchOptions();
-  }, [url]);
+  }, []);
 
   const handleSelect = (item) => {
     const value = item[valueKey || optionKey];
-    setData([value]); // single select
+    setData([value]);
     setSearch('');
     setOpen(false);
   };
@@ -71,13 +83,13 @@ const SelectDropdown = ({
         }}
       >
         {!isSelected ? (
-          <div className="p-2 w-full border text-black rounded-lg flex items-center justify-between ">
+          <div className="p-2 w-full border text-black rounded-lg flex items-center justify-between">
             <span className="text-gray-400">{placeholder}</span>
             <FaChevronDown />
           </div>
         ) : (
           <div className="flex items-center justify-between p-2 bg-gray-100 w-full h-full">
-            <span className=" px-2 py-0.5 rounded-full text-sm flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-full text-sm flex items-center gap-1">
               {data[0]}
             </span>
             <button
@@ -95,7 +107,7 @@ const SelectDropdown = ({
 
       {/* Dropdown */}
       {open && !isSelected && (
-        <div className="absolute z-10 mt-2 w-full p-2 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 ">
+        <div className="absolute z-10 mt-2 w-full p-2 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
           <input
             type="text"
             placeholder="Search..."
@@ -103,20 +115,21 @@ const SelectDropdown = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+
           <div className="max-h-40 overflow-auto flex flex-col gap-2">
-            {filteredOptions.map((option, idx) => {
-              const displayText = option[optionKey];
-              return (
+            {loading ? (
+              <div className="text-sm text-gray-500">Loading...</div>
+            ) : filteredOptions.length > 0 ? (
+              filteredOptions.map((option, idx) => (
                 <div
                   key={idx}
                   onClick={() => handleSelect(option)}
                   className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded text-sm"
                 >
-                  {displayText}
+                  {option[optionKey]}
                 </div>
-              );
-            })}
-            {filteredOptions.length === 0 && (
+              ))
+            ) : (
               <div className="text-sm text-gray-400">No results found</div>
             )}
           </div>

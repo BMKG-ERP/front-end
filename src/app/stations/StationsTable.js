@@ -27,7 +27,10 @@ const StationTable = ({
     async (sort = '', order = '', page = 1, limit = -1, search = '') => {
       try {
         const url = new URL(
-          `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations/`
+          `${
+            process.env.NEXT_PUBLIC_LOCAL_API +
+            process.env.NEXT_PUBLIC_STATION_API
+          }`
         );
         if (sort && order) {
           url.searchParams.append('sort', sort);
