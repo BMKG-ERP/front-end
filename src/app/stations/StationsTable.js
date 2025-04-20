@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { FaEdit, FaTrash, FaEye, FaMapMarkerAlt } from 'react-icons/fa';
@@ -23,35 +23,44 @@ const StationTable = ({
 
   const router = useRouter();
 
-  const fetchData = async (
-    sort = '',
-    order = '',
-    page = 1,
-    limit = -1,
-    search = ''
-  ) => {
-    try {
-      const url = new URL(`${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations/`);
-      if (sort && order) {
-        url.searchParams.append('sort', sort);
-        url.searchParams.append('order', order);
-      }
-      url.searchParams.append('page', page);
-      url.searchParams.append('limit', limit);
-      if (search) {
-        url.searchParams.append('search', search);
-      }
+  const fetchData = useCallback(
+    async (sort = '', order = '', page = 1, limit = -1, search = '') => {
+      try {
+        const url = new URL(
+          `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations/`
+        );
+        if (sort && order) {
+          url.searchParams.append('sort', sort);
+          url.searchParams.append('order', order);
+        }
+        url.searchParams.append('page', page);
+        url.searchParams.append('limit', limit);
+        if (search) {
+          url.searchParams.append('search', search);
+        }
 
-      const response = await fetch(url.toString());
-      const result = await response.json();
+        const response = await fetch(url.toString());
+        const result = await response.json();
 
-      if (!result.error && result.code === 200) {
-        return {
-          data: result.data || [],
-          pagination: result.pagination,
-        };
-      } else {
-        console.error('Error fetching stations:', result.message);
+        // if (!result.error && result.code === 200) {
+        if (!result.error) {
+          return {
+            data: result.data || [],
+            pagination: result.pagination,
+          };
+        } else {
+          console.error('Error fetching stations:', result.message);
+          return {
+            data: [],
+            pagination: {
+              total: 0,
+              totalRows: 0,
+              totalPages: 1,
+            },
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching stations:', error);
         return {
           data: [],
           pagination: {
@@ -61,22 +70,13 @@ const StationTable = ({
           },
         };
       }
-    } catch (error) {
-      console.error('Error fetching stations:', error);
-      return {
-        data: [],
-        pagination: {
-          total: 0,
-          totalRows: 0,
-          totalPages: 1,
-        },
-      };
-    }
-  };
+    },
+    [] // You can add dependencies here if needed
+  );
 
   useEffect(() => {
-    fetchData('', '', '', '', '');
-  });
+    fetchData('', '', 1, -1, '');
+  }, []);
 
   const columns = [
     {
@@ -207,6 +207,7 @@ const StationTable = ({
           createButton={true}
           createFunction={openCreateStation}
           createName={'Create Station'}
+          categories={['Stasiun Gempa Bumi', 'DUMMY CATEGORY']}
         />
       </div>
     </div>

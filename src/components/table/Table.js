@@ -21,6 +21,8 @@ const Table = ({
   createButton,
   createFunction,
   createName,
+  fontSize = '14', // default Tailwind font size
+  categories,
 }) => {
   const [data, setData] = useState(dataProp || initialData || []);
   const [sorting, setSorting] = useState([]);
@@ -41,7 +43,7 @@ const Table = ({
   const [categoryFilters, setCategoryFilters] = useState([]);
   const [pendingCategoryFilters, setPendingCategoryFilters] = useState([]);
 
-  const categories = ['Stasiun Gempa Bumi', 'DUMMY CATEGORY'];
+  // const categories = ['Stasiun Gempa Bumi', 'DUMMY CATEGORY'];
 
   // Client-side data handling
   useEffect(() => {
@@ -59,21 +61,19 @@ const Table = ({
         setLoading(false);
       });
     }
-  }, [dataTable, fetchData]);
+  }, [fetchData]);
 
   const filteredData = useMemo(() => {
     if (!dataTable) return data;
 
     let filtered = [...fullData];
 
-    // ✅ Category filter (apply only if selected)
     if (categoryFilters.length > 0) {
-      filtered = filtered.filter(
-        (row) => categoryFilters.includes(row.category) // Replace `row.category` with actual column name if different
+      filtered = filtered.filter((row) =>
+        categoryFilters.includes(row.category)
       );
     }
 
-    // ✅ Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((row) =>
@@ -83,7 +83,6 @@ const Table = ({
       );
     }
 
-    // ✅ Sorting
     if (sorting.length > 0) {
       const { id, desc } = sorting[0];
       filtered.sort((a, b) => {
@@ -121,7 +120,7 @@ const Table = ({
     pagination.limit,
     searchQuery,
     sorting,
-    categoryFilters, // ✅ include as dependency
+    categoryFilters,
   ]);
 
   const SortIcon = ({ column }) => {
@@ -198,10 +197,11 @@ const Table = ({
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}
-              className="text-white
+              className={`text-white
              font-bold
-             border-gray-400
-             "
+             border-gray-400 
+             `}
+              style={{ fontSize: `${fontSize}px` }}
             >
               {headerGroup.headers.map((header) => {
                 const isSorted = header.column.getIsSorted(); // false | 'asc' | 'desc'
@@ -249,7 +249,8 @@ const Table = ({
                   return (
                     <td
                       key={cell.id}
-                      className={`border-y p-4 px-5 border-gray-400 ${cellStyle}`} // Apply specific styles
+                      className={`border-y p-4 px-5 border-gray-400 ${cellStyle} `}
+                      style={{ fontSize: `${fontSize}px` }} // Apply specific styles
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

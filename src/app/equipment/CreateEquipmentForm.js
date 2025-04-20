@@ -1,5 +1,6 @@
 'use client';
 
+import SelectDropdown from '@/components/table/SelectDropdown';
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
@@ -20,7 +21,7 @@ const CreateEquipmentForm = ({
     setIsLoading(true);
     try {
       const url = new URL(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/crud/equipments/`
+        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
       );
       const response = await fetch(url.toString(), {
         method: 'POST',
@@ -70,26 +71,70 @@ const CreateEquipmentForm = ({
           <div className="grid grid-cols-2 gap-4 p-6">
             {[
               ['Equipment ID', 'equipment_id'],
-              ['Name', 'name'],
+              ['Name', 'name', 'equipment-names'],
               ['Serial Number', 'serial_number'],
               ['Station Code', 'station_code'],
-              ['Category', 'category'],
+              ['Category', 'category', 'categories'],
               ['Description', 'description'],
               ['Firmware Version', 'firmware_version'],
               ['Input', 'input'],
               ['Installation Date', 'installation_date'],
               ['Manufacture', 'manufacture'],
               ['Sampling Rate', 'sampling_rate'],
-              ['Type', 'type'],
+              ['Type', 'type', 'types'],
               ['Status', 'status'],
               ['Supplier', 'supplier'],
               ['Technician', 'technician'],
               ['Calibration Date', 'calibration_date'],
-              ['Use Flag', 'use_flag'],
-            ].map(([label, name], index) => (
+            ].map(([label, name, apiName], index) => (
               <div key={index} className="mb-3">
-                <label className="block text-sm font-medium">
-                  {label}{' '}
+                <label className="block text-sm font-medium">{label}</label>
+                {apiName ? ( // Check if there's an API for this field
+                  <SelectDropdown
+                    url={`${process.env.NEXT_PUBLIC_LOCAL_API}/api/${apiName}/`} // Dynamically set API URL
+                    data={formData[name] ? [formData[name]] : []}
+                    setData={(selected) =>
+                      setFormData({ ...formData, [name]: selected[0] || '' })
+                    }
+                    optionKey={name} // Field to display in dropdown
+                    valueKey={name} // Field to store in formData
+                    placeholder={`Select ${name}`}
+                  />
+                ) : name === 'start_date' ? (
+                  <input
+                    type="date"
+                    name={name}
+                    value={formData[name]}
+                    className={`w-full p-2 border ${
+                      errors[name] ? 'border-red-500' : 'border-gray-300'
+                    } rounded`}
+                    onChange={handleChange}
+                  />
+                ) : name === 'latitude' ||
+                  name === 'longitude' ||
+                  name === 'altitude' ? ( // Handle Latitude, Longitude, and Altitude as number inputs
+                  <input
+                    type="number"
+                    name={name}
+                    value={formData[name] || ''}
+                    className={`w-full p-2 border ${
+                      errors[name] ? 'border-red-500' : 'border-gray-300'
+                    } rounded`}
+                    onChange={handleChange}
+                    step="any" // Allow decimal values
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    name={name}
+                    value={formData[name]}
+                    className={`w-full p-2 border ${
+                      errors[name] ? 'border-red-500' : 'border-gray-300'
+                    } rounded`}
+                    onChange={handleChange}
+                  />
+                )}
+                {/* {label}{' '}
                   {[
                     'equipment_id',
                     'name',
@@ -105,7 +150,7 @@ const CreateEquipmentForm = ({
                     errors[name] ? 'border-red-500' : 'border-gray-300'
                   } rounded`}
                   onChange={handleChange}
-                />
+                /> */}
                 {errors[name] && (
                   <p className="text-red-500 text-sm mt-1">{errors[name]}</p>
                 )}
