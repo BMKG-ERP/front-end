@@ -34,7 +34,6 @@ function EquipmentPage() {
     supplier: null,
     technician: null,
     type: null,
-    use_flag: null,
   });
 
   const [isFormValid, setIsFormValid] = useState(true); // assume true by default
@@ -56,7 +55,6 @@ function EquipmentPage() {
       'station_code',
       'status',
       'description',
-      'use_flag',
     ].forEach((field) => {
       if (!data[field]?.trim()) {
         newErrors[field] = 'This field is required';

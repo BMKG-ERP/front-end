@@ -1,7 +1,7 @@
 'use client';
 
 import EquipmentDetail from './EquipmentDetail';
-import EquipmentTable from './EquipmenTable';
+import EquipmentTable from './EquipmentTable';
 
 function StationDetailPage({ params }) {
   const { stationCode } = params; // Extract station code

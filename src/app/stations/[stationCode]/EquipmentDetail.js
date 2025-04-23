@@ -21,7 +21,10 @@ const EquipmentDetail = ({ stationCode }) => {
     setLoading(true);
     try {
       const url = new URL(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations-detail/${decodedStationCode}/detail/`
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_STATION_API
+        }/${decodedStationCode}/detail/`
       );
 
       const response = await fetch(url.toString());

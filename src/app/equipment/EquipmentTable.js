@@ -1,176 +1,144 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  flexRender,
-} from '@tanstack/react-table';
-import {
-  FaEdit,
-  FaTrash,
-  FaEye,
-  FaSort,
-  FaSortUp,
-  FaSortDown,
-  FaSearch,
-  FaMapMarkerAlt,
-} from 'react-icons/fa';
 
-const SortIcon = ({ column }) => {
-  return column.getIsSorted() === 'asc' ? (
-    <FaSortUp />
-  ) : column.getIsSorted() === 'desc' ? (
-    <FaSortDown />
-  ) : (
-    <FaSort />
-  );
-};
+import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import Table from '@/components/table/Table';
 
 const EquipmentTable = ({
   openCreateEquipment,
-  setIsLoading,
   openEditEquipment,
   openDeleteEquipment,
 }) => {
-  const [data, setData] = useState([]);
-  const [sorting, setSorting] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [pagination, setPagination] = useState({
-    page: 1,
-    totalPages: 1,
-    limit: 10,
-  });
+  const [categories, setCategories] = useState([]);
+
+  const dataTable = true;
 
   const router = useRouter();
 
-  const fetchData = async (
-    sort = '',
-    order = '',
-    page = 1,
-    limit = 10,
-    search = ''
-  ) => {
-    setLoading(true);
+  const fetchData = useCallback(
+    async (sort = '', order = '', page = 1, limit = -1, search = '') => {
+      setLoading(true);
+      try {
+        const url = new URL(
+          `${
+            process.env.NEXT_PUBLIC_LOCAL_API +
+            process.env.NEXT_PUBLIC_EQUIPMENT_API
+          }`
+          // `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
+        );
+        if (sort && order) {
+          url.searchParams.append('sort', sort);
+          url.searchParams.append('order', order);
+        }
+        url.searchParams.append('page', page);
+        url.searchParams.append('limit', limit);
+        if (search) {
+          url.searchParams.append('search', search);
+        }
+
+        const response = await fetch(url.toString());
+        const result = await response.json();
+
+        // if (!result.error && result.code === 200) {
+        if (!result.error) {
+          return {
+            data: result.data || [],
+            pagination: result.pagination,
+          };
+        } else {
+          console.error('Error fetching stations:', result.message);
+          return {
+            data: [],
+            pagination: {
+              total: 0,
+              totalRows: 0,
+              totalPages: 1,
+            },
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching stations:', error);
+        return {
+          data: [],
+          pagination: {
+            total: 0,
+            totalRows: 0,
+            totalPages: 1,
+          },
+        };
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const fetchCategories = useCallback(async () => {
     try {
       const url = new URL(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_EQUIPMENT_CATEGORIES_API
+        }`
       );
-      if (sort && order) {
-        url.searchParams.append('sort', sort);
-        url.searchParams.append('order', order);
-      }
-      url.searchParams.append('page', page);
-      url.searchParams.append('limit', limit);
-      if (search) {
-        url.searchParams.append('search', search);
-      }
 
       const response = await fetch(url.toString());
       const result = await response.json();
-      console.log('Fetched Data:', result.data.length); // Debugging log
 
-      if (!result.error && result.code === 200) {
-        setData(result.data || []);
-        setPagination((prev) => ({
-          ...prev,
-          page,
-          totalPages: result.pagination.totalPages,
-          limit,
-        }));
+      if (!result.error) {
+        const categoryNames = result.data.map((item) => item.category);
+        setCategories(categoryNames); // Only set the names
       } else {
-        console.error('Error fetching stations:', result.message);
+        console.error('Error fetching categories:', result.message);
+        setCategories([]);
       }
     } catch (error) {
-      console.error('Error fetching stations:', error);
+      console.error('Error fetching categories:', error);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchData('', '', pagination.page, pagination.limit, searchQuery);
-  }, [pagination.page, pagination.limit, searchQuery]); // Added dependencies
-
-  const handleSort = (column) => {
-    const currentSorting = sorting.find((s) => s.id === column.id);
-    const newOrder = currentSorting?.desc ? 'asc' : 'desc';
-    setSorting([{ id: column.id, desc: newOrder === 'desc' }]);
-    fetchData(
-      column.id,
-      newOrder,
-      pagination.page,
-      pagination.limit,
-      searchQuery
-    );
-  };
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) {
-      fetchData('', '', newPage, pagination.limit, searchQuery);
-    }
-  };
-
-  const handleLimitChange = (event) => {
-    const newLimit = parseInt(event.target.value, 10);
-    fetchData('', '', 1, newLimit, searchQuery);
-  };
-
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-    fetchData('', '', 1, pagination.limit, event.target.value);
-  };
+    fetchData('', '', 1, -1, '');
+    fetchCategories();
+    console.log('CATEGORIESS ==>>', categories);
+  }, []); // Added dependencies
 
   const columns = [
     {
       accessorKey: 'equipment_id',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           Equipment ID
-          <SortIcon column={column} />
         </div>
       ),
     },
     {
       accessorKey: 'serial_number',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           Serial Number
-          <SortIcon column={column} />
         </div>
       ),
     },
     {
       accessorKey: 'name',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           Name
-          <SortIcon column={column} />
         </div>
       ),
     },
     {
       accessorKey: 'category',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           Category
-          <SortIcon column={column} />
         </div>
       ),
     },
@@ -208,13 +176,9 @@ const EquipmentTable = ({
     },
     {
       accessorKey: 'status',
-      header: ({ column }) => (
-        <div
-          className="flex items-center justify-center gap-1 cursor-pointer"
-          onClick={() => handleSort(column)}
-        >
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
           Status
-          <SortIcon column={column} />
         </div>
       ),
     },
@@ -268,109 +232,20 @@ const EquipmentTable = ({
     status: 'font-bold text-blue-950', // Bold & blue
   };
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: { sorting },
-    onSortingChange: setSorting,
-  });
-
   return (
     <div className="w-full max-w-full p-4">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-        <div className="relative w-full md:w-1/3">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search stations..."
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-          <FaSearch className="absolute right-2 top-2 text-gray-400" />
-        </div>
-        <div>
-          <button
-            className="bg-teal-800 rounded-xl p-3 text-white hover:bg-teal-600 "
-            onClick={openCreateEquipment}
-          >
-            Create Equipment
-          </button>
-        </div>
-      </div>
       <div className="relative w-full h-full">
-        <table className="w-full border border-cyan-700 rounded-lg shadow-md">
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr
-                key={headerGroup.id}
-                className="text-cyan-900 text-sm font-bold"
-              >
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="border-y p-3 py-5 text-center" // Center text alignment
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="bg-white border-cyan-700 text-[12px]">
-            {loading ? (
-              <tr>
-                <td colSpan={columns.length} className="text-center py-20">
-                  Loading...
-                </td>
-              </tr>
-            ) : (
-              table.getRowModel().rows.map((row, index) => (
-                <tr
-                  key={row.id}
-                  //   className={index % 2 === 0 ? 'bg-blue-50' : 'bg-white'}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    // Get the column ID and corresponding style
-                    const columnId = cell.column.id;
-                    const cellStyle = colStyling[columnId] || ''; // Default to no extra style if not specified
-
-                    return (
-                      <td
-                        key={cell.id}
-                        className={`border-y p-4 px-5 border-cyan-700 ${cellStyle}`} // Apply specific styles
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      <div className="flex flex-col md:flex-row justify-between items-center mt-4">
-        <div>
-          Show{' '}
-          <select
-            value={pagination.limit}
-            onChange={handleLimitChange}
-            className="border p-2"
-          >
-            {' '}
-            <option value={5}>5</option> <option value={10}>10</option>{' '}
-            <option value={20}>20</option> <option value={50}>50</option>{' '}
-          </select>{' '}
-          entries
-        </div>
+        <Table
+          columns={columns}
+          dataTable={dataTable}
+          fetchData={fetchData}
+          colStyling={colStyling}
+          createButton={true}
+          createFunction={openCreateEquipment}
+          createName={'Create Equipment'}
+          fontSize="12"
+          categories={categories}
+        />
       </div>
     </div>
   );

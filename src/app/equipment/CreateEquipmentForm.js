@@ -1,5 +1,6 @@
 'use client';
 
+import SelectDropdown from '@/components/table/SelectDropdown';
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
@@ -20,8 +21,24 @@ const CreateEquipmentForm = ({
     setIsLoading(true);
     try {
       const url = new URL(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/crud/equipments/`
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_EQUIPMENT_API
+        }`
+        // `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
       );
+
+      if (formData.calibration_date) {
+        formData.calibration_date = new Date(formData.calibration_date)
+          .toISOString()
+          .split('T')[0];
+      }
+      if (formData.installation_date) {
+        formData.installation_date = new Date(formData.installation_date)
+          .toISOString()
+          .split('T')[0];
+      }
+
       const response = await fetch(url.toString(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,26 +87,75 @@ const CreateEquipmentForm = ({
           <div className="grid grid-cols-2 gap-4 p-6">
             {[
               ['Equipment ID', 'equipment_id'],
-              ['Name', 'name'],
+              ['Name', 'name', `${process.env.NEXT_PUBLIC_EQUIPMENT_NAME_API}`],
               ['Serial Number', 'serial_number'],
               ['Station Code', 'station_code'],
-              ['Category', 'category'],
+              [
+                'Category',
+                'category',
+                `${process.env.NEXT_PUBLIC_EQUIPMENT_CATEGORIES_API}`,
+              ],
               ['Description', 'description'],
               ['Firmware Version', 'firmware_version'],
               ['Input', 'input'],
               ['Installation Date', 'installation_date'],
               ['Manufacture', 'manufacture'],
               ['Sampling Rate', 'sampling_rate'],
-              ['Type', 'type'],
+              ['Type', 'type', `${process.env.NEXT_PUBLIC_EQUIPMENT_TYPE_API}`],
               ['Status', 'status'],
               ['Supplier', 'supplier'],
               ['Technician', 'technician'],
               ['Calibration Date', 'calibration_date'],
-              ['Use Flag', 'use_flag'],
-            ].map(([label, name], index) => (
+            ].map(([label, name, apiName], index) => (
               <div key={index} className="mb-3">
-                <label className="block text-sm font-medium">
-                  {label}{' '}
+                <label className="block text-sm font-medium">{label}</label>
+                {apiName ? ( // Check if there's an API for this field
+                  <SelectDropdown
+                    url={`${process.env.NEXT_PUBLIC_LOCAL_API}${apiName}`} // Dynamically set API URL
+                    data={formData[name] ? [formData[name]] : []}
+                    setData={(selected) =>
+                      setFormData({ ...formData, [name]: selected[0] || '' })
+                    }
+                    optionKey={name} // Field to display in dropdown
+                    valueKey={name} // Field to store in formData
+                    placeholder={`Select ${name}`}
+                  />
+                ) : name === 'start_date' ? (
+                  <input
+                    type="date"
+                    name={name}
+                    value={formData[name]}
+                    className={`w-full p-2 border ${
+                      errors[name] ? 'border-red-500' : 'border-gray-300'
+                    } rounded`}
+                    onChange={handleChange}
+                  />
+                ) : name === 'status' ? ( // Handle Latitude, Longitude, and Altitude as number inputs
+                  <SelectDropdown
+                    options={[
+                      { label: 'Active', value: 'active' },
+                      { label: 'Non Active', value: 'inactive' },
+                      { label: 'Maintenance', value: 'maintenance' },
+                      { label: 'Decomissioned', value: 'decomissioned' },
+                    ]}
+                    data={formData.status ? [formData.status] : []}
+                    setData={(selected) =>
+                      setFormData({ ...formData, role: selected[0] || '' })
+                    }
+                    optionKey="label"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    name={name}
+                    value={formData[name]}
+                    className={`w-full p-2 border ${
+                      errors[name] ? 'border-red-500' : 'border-gray-300'
+                    } rounded`}
+                    onChange={handleChange}
+                  />
+                )}
+                {/* {label}{' '}
                   {[
                     'equipment_id',
                     'name',
@@ -105,7 +171,7 @@ const CreateEquipmentForm = ({
                     errors[name] ? 'border-red-500' : 'border-gray-300'
                   } rounded`}
                   onChange={handleChange}
-                />
+                /> */}
                 {errors[name] && (
                   <p className="text-red-500 text-sm mt-1">{errors[name]}</p>
                 )}

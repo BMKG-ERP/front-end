@@ -1,5 +1,6 @@
 'use client';
 
+import SelectDropdown from '@/components/table/SelectDropdown';
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
@@ -19,13 +20,22 @@ const CreateStationForm = ({
   const createStation = async () => {
     setIsLoading(true);
     try {
+      const formattedData = {
+        ...formData,
+        latitude: parseFloat(formData.latitude), // Ensure it's a number
+        longitude: parseFloat(formData.longitude), // Ensure it's a number
+        altitude: parseFloat(formData.altitude), // Ensure it's a number
+      };
       const url = new URL(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/crud/stations/`
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_STATION_API
+        }`
       );
       const response = await fetch(url.toString(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formattedData),
       });
 
       const result = await response.json();
@@ -70,14 +80,14 @@ const CreateStationForm = ({
           <div className="grid grid-cols-2 gap-4 p-6">
             {[
               ['Station Code', 'station_code'],
-              ['Category', 'category'],
+              ['Category', 'category', 'categories'],
               ['Unit', 'unit'],
               ['Description', 'description'],
               ['Status', 'status'],
               ['Maps URL', 'maps'],
-              ['Latitude', 'latitude'],
-              ['Longitude', 'longitude'],
-              ['Altitude', 'altitude'],
+              ['Latitude', 'latitude'], // Latitude field will now be a number input
+              ['Longitude', 'longitude'], // Longitude field will now be a number input
+              ['Altitude', 'altitude'], // Altitude field will now be a number input
               ['Province', 'province'],
               ['City', 'city'],
               ['District', 'district'],
@@ -85,19 +95,57 @@ const CreateStationForm = ({
               ['Network', 'network'],
               ['Start Date', 'start_date'],
               ['Address', 'address'],
-              ['Use Flag', 'use_flag'],
-            ].map(([label, name], index) => (
+            ].map(([label, name, apiName], index) => (
               <div key={index} className="mb-3">
                 <label className="block text-sm font-medium">{label}</label>
-                <input
-                  type={name === 'start_date' ? 'date' : 'text'}
-                  name={name}
-                  value={formData[name]}
-                  className={`w-full p-2 border ${
-                    errors[name] ? 'border-red-500' : 'border-gray-300'
-                  } rounded`}
-                  onChange={handleChange}
-                />
+
+                {/* Handle dropdown for specific fields like category, unit, etc. */}
+                {apiName ? ( // Check if there's an API for this field
+                  <SelectDropdown
+                    url={`${process.env.NEXT_PUBLIC_LOCAL_API}/api/${apiName}/`} // Dynamically set API URL
+                    data={formData[name] ? [formData[name]] : []}
+                    setData={(selected) =>
+                      setFormData({ ...formData, [name]: selected[0] || '' })
+                    }
+                    optionKey={name} // Field to display in dropdown
+                    valueKey={name} // Field to store in formData
+                  />
+                ) : name === 'start_date' ? (
+                  <input
+                    type="date"
+                    name={name}
+                    value={formData[name]}
+                    className={`w-full p-2 border ${
+                      errors[name] ? 'border-red-500' : 'border-gray-300'
+                    } rounded`}
+                    onChange={handleChange}
+                  />
+                ) : name === 'latitude' ||
+                  name === 'longitude' ||
+                  name === 'altitude' ? ( // Handle Latitude, Longitude, and Altitude as number inputs
+                  <input
+                    type="number"
+                    name={name}
+                    value={formData[name] || ''}
+                    className={`w-full p-2 border ${
+                      errors[name] ? 'border-red-500' : 'border-gray-300'
+                    } rounded`}
+                    onChange={handleChange}
+                    step="any" // Allow decimal values
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    name={name}
+                    value={formData[name]}
+                    className={`w-full p-2 border ${
+                      errors[name] ? 'border-red-500' : 'border-gray-300'
+                    } rounded`}
+                    onChange={handleChange}
+                  />
+                )}
+
+                {/* Display validation error */}
                 {errors[name] && (
                   <p className="text-red-500 text-sm mt-1">{errors[name]}</p>
                 )}
