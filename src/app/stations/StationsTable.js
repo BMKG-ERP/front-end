@@ -45,8 +45,7 @@ const StationTable = ({
         const response = await fetch(url.toString());
         const result = await response.json();
 
-        // if (!result.error && result.code === 200) {
-        if (!result.error) {
+        if (!result.error && result.code === 200) {
           return {
             data: result.data || [],
             pagination: result.pagination,
@@ -74,7 +73,7 @@ const StationTable = ({
         };
       }
     },
-    [] // You can add dependencies here if needed
+    []
   );
 
   useEffect(() => {
@@ -98,12 +97,13 @@ const StationTable = ({
         </div>
       ),
     },
+
     {
-      accessorKey: 'category',
+      accessorKey: 'network',
       enableSorting: true,
       header: () => (
         <div className="flex items-center justify-center gap-1 cursor-pointer">
-          Category
+          Network
         </div>
       ),
     },
@@ -126,8 +126,8 @@ const StationTable = ({
       ),
     },
     {
-      accessorKey: 'description',
-      header: 'Description',
+      accessorKey: 'instalation_date',
+      header: 'Instalation Datel',
       enableSorting: true,
     },
     {
@@ -177,7 +177,7 @@ const StationTable = ({
             </span>
           </div>
 
-          <div className="relative group">
+          {/* <div className="relative group">
             <FaTrash
               className="text-xl text-rose-700 hover:text-rose-900 cursor-pointer"
               onClick={() => openDeleteStation(row.original)}
@@ -185,7 +185,7 @@ const StationTable = ({
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               Delete
             </span>
-          </div>
+          </div> */}
         </div>
       ),
     },
@@ -211,6 +211,7 @@ const StationTable = ({
           createFunction={openCreateStation}
           createName={'Create Station'}
           categories={['Stasiun Gempa Bumi', 'DUMMY CATEGORY']}
+          searchPlaceholder={'Search Station...'}
         />
       </div>
     </div>

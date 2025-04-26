@@ -7,10 +7,39 @@ const Pagination = ({ pagination, onPageChange }) => {
   const pages = [];
 
   let start = Math.max(current - 2, 1);
-  let end = Math.min(start + 3, total);
+  let end = Math.min(start + 2, total);
 
-  if (end - start < 3) {
+  if (end - start < 2) {
     start = Math.max(end - 3, 1);
+  }
+
+  // Always show the first page
+  if (start > 1) {
+    pages.push(
+      <button
+        key={1}
+        onClick={() => onPageChange(1)}
+        className={`px-3 py-1 border rounded text-sm ${
+          current === 1
+            ? 'bg-teal-800 text-white font-bold'
+            : 'hover:bg-teal-800'
+        }`}
+      >
+        1
+      </button>
+    );
+
+    if (start > 2) {
+      pages.push(
+        <button
+          key="start-ellipsis"
+          onClick={() => onPageChange(start - 1)}
+          className="px-3 py-1 border rounded text-sm hover:bg-teal-800"
+        >
+          ...
+        </button>
+      );
+    }
   }
 
   // Page buttons in range
@@ -19,10 +48,10 @@ const Pagination = ({ pagination, onPageChange }) => {
       <button
         key={i}
         onClick={() => onPageChange(i)}
-        className={`px-3 py-1 border rounded text-sm text-black hover:text-white ${
+        className={`px-3 py-1 border rounded text-sm ${
           i === current
             ? 'bg-teal-800 text-white font-bold'
-            : 'hover:bg-teal-800'
+            : 'text-black hover:text-white hover:bg-teal-800'
         }`}
       >
         {i}

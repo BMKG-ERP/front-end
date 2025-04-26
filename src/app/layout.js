@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
                 overflowX: 'hidden', // Prevents horizontal scrolling
               }}
             >
-              <div className="flex flex-col flex-grow">{children}</div>
+              <div className="flex flex-col flex-grow ml-10">{children}</div>
               <Footer />
             </div>
           </div>

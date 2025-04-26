@@ -23,6 +23,7 @@ const Table = ({
   createName,
   fontSize = '14', // default Tailwind font size
   categories,
+  searchPlaceholder,
 }) => {
   const [data, setData] = useState(dataProp || initialData || []);
   const [sorting, setSorting] = useState([]);
@@ -156,8 +157,20 @@ const Table = ({
 
   return (
     <>
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-        <div className="relative w-full md:w-1/3 mb-2 md:mb-0">
+      <div className="flex items-center gap-4 mb-4">
+        {/* Filter Dropdown */}
+        <div className="w-full md:w-auto">
+          <FilterDropdown
+            pendingCategoryFilters={pendingCategoryFilters}
+            setPendingCategoryFilters={setPendingCategoryFilters}
+            setCategoryFilters={setCategoryFilters}
+            setPagination={setPagination}
+            categories={categories}
+          />
+        </div>
+
+        {/* Search Input */}
+        <div className="relative w-full md:w-80">
           <input
             type="text"
             value={searchQuery}
@@ -165,14 +178,15 @@ const Table = ({
               setSearchQuery(e.target.value);
               setPagination((prev) => ({ ...prev, page: 1 }));
             }}
-            placeholder="Search stations..."
+            placeholder={searchPlaceholder}
             className="w-full p-2 border border-gray-300 rounded"
           />
           <FaSearch className="absolute right-2 top-3 text-gray-400" />
         </div>
 
+        {/* Create Button (Optional) */}
         {createButton && (
-          <div className="mt-2 md:mt-0">
+          <div className="ml-auto">
             <button
               className="bg-teal-800 rounded-xl p-3 text-white hover:bg-teal-600"
               onClick={createFunction}
@@ -182,7 +196,8 @@ const Table = ({
           </div>
         )}
       </div>
-      <div className="mb-4">
+
+      {/* <div className="mb-4">
         <FilterDropdown
           pendingCategoryFilters={pendingCategoryFilters}
           setPendingCategoryFilters={setPendingCategoryFilters}
@@ -190,7 +205,7 @@ const Table = ({
           setPagination={setPagination}
           categories={categories}
         />
-      </div>
+      </div> */}
 
       <table className="w-full border border-gray-600 bg-teal-800 shadow-md">
         <thead>
@@ -239,8 +254,17 @@ const Table = ({
                 Loading...
               </td>
             </tr>
+          ) : table.getRowModel().rows.length === 0 ? (
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="text-center py-20 text-gray-500"
+              >
+                No Data Found
+              </td>
+            </tr>
           ) : (
-            table.getRowModel().rows.map((row, index) => (
+            table.getRowModel().rows.map((row) => (
               <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => {
                   const columnId = cell.column.id;
@@ -249,8 +273,8 @@ const Table = ({
                   return (
                     <td
                       key={cell.id}
-                      className={`border-y p-4 px-5 border-gray-400 ${cellStyle} `}
-                      style={{ fontSize: `${fontSize}px` }} // Apply specific styles
+                      className={`border-y p-4 px-5 border-gray-400 ${cellStyle}`}
+                      style={{ fontSize: `${fontSize}px` }}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

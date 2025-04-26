@@ -138,7 +138,7 @@ function StationPage() {
   return (
     <div className="z-10 h-full w-full flex justify-center">
       <div className="w-full h-full max-w-[1800px] mt-10 border-x-2 border-gray-300 bg-white flex flex-col items-center py-4 px-4 md:px-8 lg:px-12">
-        <h1 className="text-2xl font-bold">This is Station Page</h1>
+        <h1 className="text-2xl font-bold">List Station</h1>
 
         <div className="w-full h-full mx-auto mb-10 mt-5">
           <div className="flex flex-col items-center mb-5 justify-center z-20 w-full h-[300px] md:h-full">
@@ -146,7 +146,7 @@ function StationPage() {
             <div className="w-full max-w-full p-4">
               {isLoading && (
                 <div className="fixed inset-0 bg-black/60 z-[90] flex items-center justify-center">
-                  <div className=" p-6 bg-white items-center flex flex-col justify-center rounded-lg shadow-lg w-[40vw] h-[40vh]  overflow-visible overflow-y-scroll scrollbar-thin scrollbar-track-gray-200 scrollbar-thumb-gray-400">
+                  <div className=" p-6 text-white items-center flex flex-col justify-center rounded-lg shadow-lg  ">
                     LOADING
                   </div>
                 </div>

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import Papa from 'papaparse';
+import { useRouter } from 'next/navigation';
 
 const createCustomIcon = (color = 'red') => {
   return L.divIcon({
@@ -20,27 +20,34 @@ const IndonesiaMap = ({ interactive = false }) => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch CSV Data
-  const fetchLocations = useCallback(async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations`
-      );
-      const data = await response.json(); // Parse JSON response
+  const router = useRouter();
 
-      console.log('API Response:', data); // Debugging
+  const fetchLocations = useCallback(
+    async (sort = '', order = '', page = 1, limit = -1, search = '') => {
+      try {
+        const url = new URL(
+          `${process.env.NEXT_PUBLIC_LOCAL_API}/api/stations`
+        );
 
-      setLocations(data.data); // Ensure data is an array
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching locations:', error);
-      setLoading(false);
-    }
-  }, []);
+        url.searchParams.append('page', page);
+        url.searchParams.append('limit', limit);
+
+        const response = await fetch(url.toString());
+        const data = await response.json(); // Parse JSON response
+
+        setLocations(data.data); // Ensure data is an array
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    fetchLocations();
-  }, [fetchLocations]);
+    fetchLocations('', '', 1, -1, '');
+  }, []);
 
   // Memoized Pop-up Data
   const popUpData = useMemo(
@@ -111,8 +118,13 @@ const IndonesiaMap = ({ interactive = false }) => {
               ))}
 
               <div className="mt-3 space-y-2">
-                <button className="w-full bg-blue-100 text-blue-600 py-1 rounded-md hover:bg-blue-200">
-                  View Details Report
+                <button
+                  onClick={() => {
+                    router.push(`/stations/${loc.station_code}`);
+                  }}
+                  className="w-full bg-blue-100 text-blue-600 py-1 rounded-md hover:bg-blue-200"
+                >
+                  View Details
                 </button>
                 <a
                   href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}

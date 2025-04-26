@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 
-const EquipmentDetail = ({ stationCode }) => {
+const StationDetail = ({ stationCode }) => {
   const decodedStationCode = stationCode
     ? decodeURIComponent(stationCode).toUpperCase()
     : '';
@@ -24,14 +24,14 @@ const EquipmentDetail = ({ stationCode }) => {
         `${
           process.env.NEXT_PUBLIC_LOCAL_API +
           process.env.NEXT_PUBLIC_STATION_API
-        }/${decodedStationCode}/detail/`
+        }/${decodedStationCode}`
       );
 
       const response = await fetch(url.toString());
       const result = await response.json();
 
       if (!result.error && result.code === 200) {
-        setData(result.data.station); // Directly store station data
+        setData(result.data); // Directly store station data
       } else {
         console.error('Error fetching station:', result.message);
       }
@@ -99,4 +99,4 @@ const EquipmentDetail = ({ stationCode }) => {
   );
 };
 
-export default EquipmentDetail;
+export default StationDetail;
