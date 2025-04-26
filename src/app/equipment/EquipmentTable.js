@@ -27,7 +27,6 @@ const EquipmentTable = ({
             process.env.NEXT_PUBLIC_LOCAL_API +
             process.env.NEXT_PUBLIC_EQUIPMENT_API
           }`
-          // `${process.env.NEXT_PUBLIC_LOCAL_API}/api/equipments/`
         );
         if (sort && order) {
           url.searchParams.append('sort', sort);
@@ -106,7 +105,6 @@ const EquipmentTable = ({
   useEffect(() => {
     fetchData('', '', 1, -1, '');
     fetchCategories();
-    console.log('CATEGORIESS ==>>', categories);
   }, []); // Added dependencies
 
   const columns = [
@@ -118,14 +116,14 @@ const EquipmentTable = ({
         </div>
       ),
     },
-    {
-      accessorKey: 'serial_number',
-      header: () => (
-        <div className="flex items-center justify-center gap-1 cursor-pointer">
-          Serial Number
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: 'serial_number',
+    //   header: () => (
+    //     <div className="flex items-center justify-center gap-1 cursor-pointer">
+    //       Serial Number
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: 'name',
       header: () => (
@@ -150,42 +148,42 @@ const EquipmentTable = ({
       accessorKey: 'type',
       header: 'Type',
     },
-    {
-      accessorKey: 'input',
-      header: 'Input',
-    },
+    // {
+    //   accessorKey: 'input',
+    //   header: 'Input',
+    // },
     {
       accessorKey: 'installation_date',
       header: 'Instalation Date',
     },
-    {
-      accessorKey: 'calibration_date',
-      header: 'Calibration Date',
-    },
-    {
-      accessorKey: 'firmware_version',
-      header: 'Firmware Version',
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-    },
-    {
-      accessorKey: 'technician',
-      header: 'Technician',
-    },
-    {
-      accessorKey: 'status',
-      header: () => (
-        <div className="flex items-center justify-center gap-1 cursor-pointer">
-          Status
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'supplier',
-      header: 'Supplier',
-    },
+    // {
+    //   accessorKey: 'calibration_date',
+    //   header: 'Calibration Date',
+    // },
+    // {
+    //   accessorKey: 'firmware_version',
+    //   header: 'Firmware Version',
+    // },
+    // {
+    //   accessorKey: 'description',
+    //   header: 'Description',
+    // },
+    // {
+    //   accessorKey: 'technician',
+    //   header: 'Technician',
+    // },
+    // {
+    //   accessorKey: 'status',
+    //   header: () => (
+    //     <div className="flex items-center justify-center gap-1 cursor-pointer">
+    //       Status
+    //     </div>
+    //   ),
+    // },
+    // {
+    //   accessorKey: 'supplier',
+    //   header: 'Supplier',
+    // },
     {
       id: 'actions',
       header: 'Actions',
@@ -203,7 +201,7 @@ const EquipmentTable = ({
             </span>
           </div>
 
-          <div className="relative group">
+          {/* <div className="relative group">
             <FaEdit
               className="text-xl text-emerald-700 hover:text-emerald-900 cursor-pointer"
               onClick={() => openEditEquipment(row.original)}
@@ -221,7 +219,7 @@ const EquipmentTable = ({
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               Delete
             </span>
-          </div>
+          </div> */}
         </div>
       ),
     },
@@ -240,8 +238,8 @@ const EquipmentTable = ({
           dataTable={dataTable}
           fetchData={fetchData}
           colStyling={colStyling}
-          createButton={true}
-          createFunction={openCreateEquipment}
+          // createButton={true}
+          // createFunction={openCreateEquipment}
           createName={'Create Equipment'}
           fontSize="12"
           categories={categories}

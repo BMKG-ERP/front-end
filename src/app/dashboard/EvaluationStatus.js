@@ -29,8 +29,6 @@ const EvaluationData = () => {
       );
       const data = await response.json();
 
-      console.log('API Response:', data); // Debugging
-
       setEvaluationData(data.data || []); // Ensure data is an array
       setLoading(false);
     } catch (error) {

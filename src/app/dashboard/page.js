@@ -17,10 +17,10 @@ function LandingPage() {
 
           <div className="font-bold font-sans w-full flex flex-col md:flex-col lg:flex-row gap-4">
             <div className="md:flex-1 border-4 border-yellow-500 justify-center items-center p-4 sm:w-full md:w-full lg:w-1/2">
-              <EvaluationData />
+              {/* <EvaluationData /> */}
             </div>
             <div className="md:flex-3 border-4 border-blue-500 justify-center items-center p-4 sm:w-full md:w-full lg:w-1/2">
-              <MaintenanceData />
+              {/* <MaintenanceData /> */}
             </div>
           </div>
         </div>
