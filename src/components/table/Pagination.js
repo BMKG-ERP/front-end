@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Pagination = ({ pagination, onPageChange }) => {
+const Pagination = ({ pagination, onPageChange, miniSize = false }) => {
   const current = pagination.page;
   const total = pagination.totalPages || 1;
 
@@ -10,8 +10,10 @@ const Pagination = ({ pagination, onPageChange }) => {
   let end = Math.min(start + 2, total);
 
   if (end - start < 2) {
-    start = Math.max(end - 3, 1);
+    start = Math.max(end - 2, 1);
   }
+
+  const buttonClass = miniSize ? 'px-2 py-0.5 text-[8px]' : 'px-3 py-1 text-sm';
 
   // Always show the first page
   if (start > 1) {
@@ -19,7 +21,7 @@ const Pagination = ({ pagination, onPageChange }) => {
       <button
         key={1}
         onClick={() => onPageChange(1)}
-        className={`px-3 py-1 border rounded text-sm ${
+        className={`border rounded ${buttonClass} ${
           current === 1
             ? 'bg-teal-800 text-white font-bold'
             : 'hover:bg-teal-800'
@@ -34,7 +36,7 @@ const Pagination = ({ pagination, onPageChange }) => {
         <button
           key="start-ellipsis"
           onClick={() => onPageChange(start - 1)}
-          className="px-3 py-1 border rounded text-sm hover:bg-teal-800"
+          className={`border rounded ${buttonClass} hover:bg-teal-800`}
         >
           ...
         </button>
@@ -48,7 +50,7 @@ const Pagination = ({ pagination, onPageChange }) => {
       <button
         key={i}
         onClick={() => onPageChange(i)}
-        className={`px-3 py-1 border rounded text-sm ${
+        className={`border rounded ${buttonClass} ${
           i === current
             ? 'bg-teal-800 text-white font-bold'
             : 'text-black hover:text-white hover:bg-teal-800'
@@ -66,7 +68,7 @@ const Pagination = ({ pagination, onPageChange }) => {
         <button
           key="end-ellipsis"
           onClick={() => onPageChange(end + 1)}
-          className="px-3 py-1 border rounded text-sm hover:bg-teal-800"
+          className={`border rounded ${buttonClass} hover:bg-teal-800`}
         >
           ...
         </button>
@@ -76,7 +78,7 @@ const Pagination = ({ pagination, onPageChange }) => {
       <button
         key={total}
         onClick={() => onPageChange(total)}
-        className={`px-3 py-1 border rounded text-sm ${
+        className={`border rounded ${buttonClass} ${
           current === total
             ? 'bg-teal-800 text-white font-bold'
             : 'hover:bg-teal-800'
@@ -93,7 +95,7 @@ const Pagination = ({ pagination, onPageChange }) => {
       <button
         onClick={() => onPageChange(Math.max(current - 1, 1))}
         disabled={current === 1}
-        className="px-2 py-1 border rounded text-sm disabled:opacity-50"
+        className={`border rounded ${buttonClass} disabled:opacity-50`}
       >
         &lt;
       </button>
@@ -105,7 +107,7 @@ const Pagination = ({ pagination, onPageChange }) => {
       <button
         onClick={() => onPageChange(Math.min(current + 1, total))}
         disabled={current === total}
-        className="px-2 py-1 border rounded text-sm disabled:opacity-50"
+        className={`border rounded ${buttonClass} disabled:opacity-50`}
       >
         &gt;
       </button>

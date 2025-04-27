@@ -1,8 +1,8 @@
 'use client';
 
-import MaintenanceData from './MaintenanceDataWrapper';
-import EvaluationData from './EvaluationStatus';
 import IndonesiaMap from './IndonesianMapWrapper';
+import EquipmentCategory from './EquipmentCategory';
+import SummaryDisplay from './EquipmentName';
 
 function LandingPage() {
   return (
@@ -16,11 +16,11 @@ function LandingPage() {
           </div>
 
           <div className="font-bold font-sans w-full flex flex-col md:flex-col lg:flex-row gap-4">
-            <div className="md:flex-1 border-4 border-yellow-500 justify-center items-center p-4 sm:w-full md:w-full lg:w-1/2">
-              {/* <EvaluationData /> */}
+            <div className="basis-1/4  rounded-xl shadow-2xl flex justify-center items-center p-4 sm:w-full md:w-full lg:w-auto">
+              <EquipmentCategory />
             </div>
-            <div className="md:flex-3 border-4 border-blue-500 justify-center items-center p-4 sm:w-full md:w-full lg:w-1/2">
-              {/* <MaintenanceData /> */}
+            <div className="basis-3/4 rounded-xl shadow-2xl flex justify-center items-center p-4 sm:w-full md:w-full lg:w-auto">
+              <SummaryDisplay />
             </div>
           </div>
         </div>

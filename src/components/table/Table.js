@@ -24,6 +24,7 @@ const Table = ({
   fontSize = '14', // default Tailwind font size
   categories,
   searchPlaceholder,
+  miniSize = false, // <-- ADDED
 }) => {
   const [data, setData] = useState(dataProp || initialData || []);
   const [sorting, setSorting] = useState([]);
@@ -44,9 +45,6 @@ const Table = ({
   const [categoryFilters, setCategoryFilters] = useState([]);
   const [pendingCategoryFilters, setPendingCategoryFilters] = useState([]);
 
-  // const categories = ['Stasiun Gempa Bumi', 'DUMMY CATEGORY'];
-
-  // Client-side data handling
   useEffect(() => {
     if (dataTable) {
       fetchData({ limit: -1 }).then((res) => {
@@ -157,17 +155,21 @@ const Table = ({
 
   return (
     <>
-      <div className="flex items-center gap-4 mb-4">
+      <div
+        className={`flex items-center gap-4 mb-4 ${miniSize ? 'text-sm' : ''}`}
+      >
         {/* Filter Dropdown */}
-        <div className="w-full md:w-auto">
-          <FilterDropdown
-            pendingCategoryFilters={pendingCategoryFilters}
-            setPendingCategoryFilters={setPendingCategoryFilters}
-            setCategoryFilters={setCategoryFilters}
-            setPagination={setPagination}
-            categories={categories}
-          />
-        </div>
+        {categories && (
+          <div className="w-full md:w-auto">
+            <FilterDropdown
+              pendingCategoryFilters={pendingCategoryFilters}
+              setPendingCategoryFilters={setPendingCategoryFilters}
+              setCategoryFilters={setCategoryFilters}
+              setPagination={setPagination}
+              categories={categories}
+            />
+          </div>
+        )}
 
         {/* Search Input */}
         <div className="relative w-full md:w-80">
@@ -179,16 +181,24 @@ const Table = ({
               setPagination((prev) => ({ ...prev, page: 1 }));
             }}
             placeholder={searchPlaceholder}
-            className="w-full p-2 border border-gray-300 rounded"
+            className={`w-full border border-gray-300 rounded 
+              ${miniSize ? 'p-1 text-sm' : 'p-2'}
+            `}
           />
-          <FaSearch className="absolute right-2 top-3 text-gray-400" />
+          <FaSearch
+            className={`absolute right-2 ${
+              miniSize ? 'top-2' : 'top-3'
+            } text-gray-400`}
+          />
         </div>
 
         {/* Create Button (Optional) */}
         {createButton && (
           <div className="ml-auto">
             <button
-              className="bg-teal-800 rounded-xl p-3 text-white hover:bg-teal-600"
+              className={`rounded-xl text-white hover:bg-teal-600
+                ${miniSize ? 'p-2 text-sm bg-teal-700' : 'p-3 bg-teal-800'}
+              `}
               onClick={createFunction}
             >
               {createName}
@@ -197,52 +207,41 @@ const Table = ({
         )}
       </div>
 
-      {/* <div className="mb-4">
-        <FilterDropdown
-          pendingCategoryFilters={pendingCategoryFilters}
-          setPendingCategoryFilters={setPendingCategoryFilters}
-          setCategoryFilters={setCategoryFilters}
-          setPagination={setPagination}
-          categories={categories}
-        />
-      </div> */}
-
       <table className="w-full border border-gray-600 bg-teal-800 shadow-md">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr
               key={headerGroup.id}
-              className={`text-white
-             font-bold
-             border-gray-400 
-             `}
-              style={{ fontSize: `${fontSize}px` }}
+              className="text-white font-bold border-gray-400"
+              style={{
+                fontSize: miniSize
+                  ? `${parseInt(fontSize) - 2}px`
+                  : `${fontSize}px`,
+              }}
             >
-              {headerGroup.headers.map((header) => {
-                const isSorted = header.column.getIsSorted(); // false | 'asc' | 'desc'
-
-                return (
-                  <th
-                    key={header.id}
-                    className="border-y p-3 py-5 text-center cursor-pointer select-none"
-                    onClick={
-                      header.column.getCanSort()
-                        ? header.column.getToggleSortingHandler()
-                        : undefined
-                    }
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {header.column.getCanSort() && (
-                        <SortIcon column={header.column} />
-                      )}
-                    </div>
-                  </th>
-                );
-              })}
+              {headerGroup.headers.map((header) => (
+                <th
+                  key={header.id}
+                  className={`border-y text-center cursor-pointer select-none
+                    ${miniSize ? 'p-2 py-3' : 'p-3 py-5'}
+                  `}
+                  onClick={
+                    header.column.getCanSort()
+                      ? header.column.getToggleSortingHandler()
+                      : undefined
+                  }
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                    {header.column.getCanSort() && (
+                      <SortIcon column={header.column} />
+                    )}
+                  </div>
+                </th>
+              ))}
             </tr>
           ))}
         </thead>
@@ -273,8 +272,14 @@ const Table = ({
                   return (
                     <td
                       key={cell.id}
-                      className={`border-y p-4 px-5 border-gray-400 ${cellStyle}`}
-                      style={{ fontSize: `${fontSize}px` }}
+                      className={`border-y border-gray-400 ${cellStyle} 
+                        ${miniSize ? 'p-2 px-3' : 'p-4 px-5'}
+                      `}
+                      style={{
+                        fontSize: miniSize
+                          ? `${parseInt(fontSize) - 2}px`
+                          : `${fontSize}px`,
+                      }}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -289,11 +294,16 @@ const Table = ({
         </tbody>
       </table>
 
-      <div className="flex justify-between items-center mt-4 px-2">
-        <div className="text-sm text-gray-700 flex flex-row">
+      <div
+        className={`flex justify-between items-center mt-4 px-2 ${
+          miniSize ? 'text-sm' : ''
+        }`}
+      >
+        <div className="text-gray-700 flex flex-row">
           <Limit
             pagination={pagination}
             handleLimitChange={handleLimitChange}
+            miniSize={miniSize} // Pass if needed
           />
         </div>
         <div className="flex items-center gap-1">
@@ -302,6 +312,7 @@ const Table = ({
             onPageChange={(newPage) =>
               setPagination((prev) => ({ ...prev, page: newPage }))
             }
+            miniSize={miniSize} // Pass if needed
           />
         </div>
       </div>
