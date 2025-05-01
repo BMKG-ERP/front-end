@@ -25,6 +25,7 @@ const Table = ({
   categories,
   searchPlaceholder,
   miniSize = false, // <-- ADDED
+  isSearch = true,
 }) => {
   const [data, setData] = useState(dataProp || initialData || []);
   const [sorting, setSorting] = useState([]);
@@ -172,25 +173,27 @@ const Table = ({
         )}
 
         {/* Search Input */}
-        <div className="relative w-full md:w-80">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPagination((prev) => ({ ...prev, page: 1 }));
-            }}
-            placeholder={searchPlaceholder}
-            className={`w-full border border-gray-300 rounded 
+        {isSearch && (
+          <div className="relative w-full md:w-80">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+              placeholder={searchPlaceholder}
+              className={`w-full border border-gray-300 rounded 
               ${miniSize ? 'p-1 text-sm' : 'p-2'}
             `}
-          />
-          <FaSearch
-            className={`absolute right-2 ${
-              miniSize ? 'top-2' : 'top-3'
-            } text-gray-400`}
-          />
-        </div>
+            />
+            <FaSearch
+              className={`absolute right-2 ${
+                miniSize ? 'top-2' : 'top-3'
+              } text-gray-400`}
+            />
+          </div>
+        )}
 
         {/* Create Button (Optional) */}
         {createButton && (

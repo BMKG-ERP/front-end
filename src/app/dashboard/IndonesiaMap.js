@@ -6,14 +6,28 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useRouter } from 'next/navigation';
 
-const createCustomIcon = (color = 'red') => {
+const createCustomIcon = (color = 'gray') => {
   return L.divIcon({
     className: 'custom-icon',
-    html: `<div style="font-size: 24px; color: ${color};"><i class="icon-marker">📍</i></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 24],
-    popupAnchor: [0, -24],
+    html: `<div style="
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: ${color};
+      border: 2px solid white;
+      box-shadow: 0 0 2px rgba(0,0,0,0.5);
+    "></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
   });
+};
+
+const getColorFromSearchScore = (score) => {
+  if (score === null || score === undefined) return 'gray'; // Empty
+  if (score < 35) return 'red';
+  if (score < 80) return 'yellow';
+  return 'green'; // 90%+
 };
 
 const IndonesiaMap = ({ interactive = false }) => {
@@ -90,55 +104,61 @@ const IndonesiaMap = ({ interactive = false }) => {
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-      {locations.map((loc, index) => (
-        <Marker
-          key={index}
-          position={[+loc.latitude, +loc.longitude]}
-          icon={createCustomIcon('blue')}
-        >
-          <Popup>
-            <div className="p-2 w-72">
-              <h1 className="font-bold text-lg">{loc.station_code}</h1>
-              <a
-                href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                {loc.latitude}, {loc.longitude}
-              </a>
+      {locations.map((loc, index) => {
+        const color = getColorFromSearchScore(loc.searchScore);
 
-              {popUpData[index]?.map(([label, value, extraClass]) => (
-                <p key={label} className="w-full flex flex-row">
-                  <span className="text-gray-500 w-full flex-1">{label}:</span>
-                  <strong className={extraClass + ' w-full flex-1'}>
-                    {value}
-                  </strong>
-                </p>
-              ))}
-
-              <div className="mt-3 space-y-2">
-                <button
-                  onClick={() => {
-                    router.push(`/stations/${loc.station_code}`);
-                  }}
-                  className="w-full bg-blue-100 text-blue-600 py-1 rounded-md hover:bg-blue-200"
-                >
-                  View Details
-                </button>
+        return (
+          <Marker
+            key={index}
+            position={[+loc.latitude, +loc.longitude]}
+            icon={createCustomIcon(color)}
+          >
+            <Popup>
+              <div className="p-2 w-72">
+                <h1 className="font-bold text-lg">{loc.station_code}</h1>
                 <a
                   href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full block text-center bg-gray-100 text-gray-600 py-1 rounded-md hover:bg-gray-200"
+                  className="text-blue-500 hover:underline"
                 >
-                  Open in Google Maps
+                  {loc.latitude}, {loc.longitude}
                 </a>
+
+                {popUpData[index]?.map(([label, value, extraClass]) => (
+                  <p key={label} className="w-full flex flex-row">
+                    <span className="text-gray-500 w-full flex-1">
+                      {label}:
+                    </span>
+                    <strong className={extraClass + ' w-full flex-1'}>
+                      {value}
+                    </strong>
+                  </p>
+                ))}
+
+                <div className="mt-3 space-y-2">
+                  <button
+                    onClick={() => {
+                      router.push(`/stations/${loc.station_code}`);
+                    }}
+                    className="w-full bg-blue-100 text-blue-600 py-1 rounded-md hover:bg-blue-200"
+                  >
+                    View Details
+                  </button>
+                  <a
+                    href={`https://www.google.com/maps?q=${loc.latitude},${loc.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full block text-center bg-gray-100 text-gray-600 py-1 rounded-md hover:bg-gray-200"
+                  >
+                    Open in Google Maps
+                  </a>
+                </div>
               </div>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+            </Popup>
+          </Marker>
+        );
+      })}
     </MapContainer>
   );
 };
