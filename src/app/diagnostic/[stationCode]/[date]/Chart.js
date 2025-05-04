@@ -51,9 +51,10 @@ const HealthStatusChart = ({ data }) => {
       timeZone: 'UTC',
     });
 
-    if (!channelGroups[item.channel]) {
+    if (item.channel && !channelGroups[item.channel]) {
       channelGroups[item.channel] = {};
     }
+
     channelGroups[item.channel][time] = parseFloat(item.health_status);
   });
 

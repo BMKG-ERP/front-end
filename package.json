@@ -12,7 +12,7 @@
     "@ionic/react": "^8.5.1",
     "@ionic/react-router": "^8.5.1",
     "@tanstack/react-table": "^8.21.2",
-    "chart.js": "^4.4.9",
+    "chart.js": "^3.9.1",
     "ionicons": "^7.4.0",
     "leaflet": "^1.9.4",
     "next": "15.2.1",
