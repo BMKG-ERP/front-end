@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 
 import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 import Table from '@/components/table/Table';
+import DetailEquipment from '../stations/[stationCode]/DetailEquipment';
 
 const EquipmentTable = ({
   openCreateEquipment,
   openEditEquipment,
   openDeleteEquipment,
+  openViewEquipment,
 }) => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -192,9 +194,7 @@ const EquipmentTable = ({
           <div className="relative group">
             <FaEye
               className="text-xl text-cyan-700 hover:text-cyan-900 cursor-pointer"
-              onClick={() =>
-                router.push(`/equipment/${row.original.equipment_id}`)
-              }
+              onClick={() => openViewEquipment(row.original)}
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               View

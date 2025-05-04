@@ -7,6 +7,7 @@ import NotificationModal from './NotificationModal';
 import CreateEquipmentForm from './CreateEquipmentForm';
 import UpdateEquipmentForm from './UpdateEquipmentForm';
 import DeleteEquipmentForm from './DeleteEquipmentForm';
+import DetailEquipmentView from './DetailEquipmentForm';
 
 // import EquipmenTable from './';
 
@@ -15,6 +16,7 @@ function EquipmentPage() {
 
   const [isCreateEquipment, setIsCreateEquipment] = useState(false);
   const [isEditEquipment, setIsEditEquipment] = useState(false);
+  const [isViewEquipment, setIsViewEquipment] = useState(false);
   const [isDeleteEquipment, setIsDeleteEquipment] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -93,6 +95,14 @@ function EquipmentPage() {
     setErrors({});
     setIsFormValid(true);
   };
+  const openViewEquipment = (data) => {
+    setFormData(data); // Populate form fields
+    setIsViewEquipment(true);
+  };
+  const closeViewEquipment = () => {
+    setFormData([]);
+    setIsViewEquipment(false);
+  };
   const openEditEquipment = (data) => {
     setFormData(data); // Populate form fields
     setIsEditEquipment(true);
@@ -157,8 +167,9 @@ function EquipmentPage() {
                 <EquipmentTable
                   openCreateEquipment={openCreateEquipment}
                   setIsLoading={setIsLoading}
-                  openEditEquipment={openEditEquipment}
-                  openDeleteEquipment={openDeleteEquipment}
+                  openViewEquipment={openViewEquipment}
+                  // openEditEquipment={openEditEquipment}
+                  // openDeleteEquipment={openDeleteEquipment}
                 />
               </div>
               {/* Modal */}
@@ -183,6 +194,21 @@ function EquipmentPage() {
                   formData={formData}
                   setFormData={setFormData}
                   closeEditEquipment={closeEditEquipment}
+                  showNotification={showNotification}
+                  validateForm={validateForm}
+                  handleChange={handleChange}
+                  errors={errors}
+                  setErrors={setErrors}
+                  isFormValid={isFormValid}
+                  setIsLoading={setIsLoading}
+                  isLoading={isLoading}
+                />
+              )}
+              {isViewEquipment && (
+                <DetailEquipmentView
+                  formData={formData}
+                  setFormData={setFormData}
+                  closeViewEquipment={closeViewEquipment}
                   showNotification={showNotification}
                   validateForm={validateForm}
                   handleChange={handleChange}

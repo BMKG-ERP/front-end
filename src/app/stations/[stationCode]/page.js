@@ -17,7 +17,7 @@ function StationDetailPage({ params }) {
         <div className="w-full flex items-start mb-4">
           <button
             onClick={() => router.back()}
-            className="text-teal-700 hover:text-teal-500 flex items-center text-lg"
+            className="text-teal-700 hover:text-teal-500 flex items-center text-md"
           >
             ← Back to Station Page
           </button>

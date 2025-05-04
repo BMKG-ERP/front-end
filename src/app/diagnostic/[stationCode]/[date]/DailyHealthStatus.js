@@ -87,14 +87,14 @@ const DailyHealthTable = ({ station_code, report_date }) => {
     },
 
     {
-      accessorKey: 'timestamp',
+      accessorKey: 'report_timestamp',
       header: () => (
         <div className="flex items-center justify-center gap-1 cursor-pointer">
           Date
         </div>
       ),
       cell: ({ row }) => {
-        const value = row.original.timestamp;
+        const value = row.original.report_timestamp;
         if (!value) return '-';
 
         const date = new Date(value);
@@ -122,24 +122,10 @@ const DailyHealthTable = ({ station_code, report_date }) => {
     {
       accessorKey: 'health_status',
       header: 'Health Status',
-      //   cell: ({ row }) => {
-      //     const score = row.original.health_score;
-      //     if (score === null || score === undefined) return 'Empty';
-      //     if (score < 50) return 'Poor';
-      //     if (score < 90) return 'Fair';
-      //     return 'Excellent';
-      //   },
     },
     {
       accessorKey: 'diagnosis',
       header: 'Diagnosis',
-      //   cell: ({ row }) => {
-      //     const score = row.original.health_score;
-      //     if (score === null || score === undefined) return 'Empty';
-      //     if (score < 50) return 'Poor';
-      //     if (score < 90) return 'Fair';
-      //     return 'Excellent';
-      //   },
     },
   ];
 

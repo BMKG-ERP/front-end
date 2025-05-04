@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 
@@ -8,7 +8,7 @@ import Table from '@/components/table/Table';
 
 const DailyReportTable = ({ station_code }) => {
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState([]);
+  const [filterApplied, setFilterApplied] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -19,23 +19,27 @@ const DailyReportTable = ({ station_code }) => {
     limit: -1,
   });
 
+  const [tableData, setTableData] = useState([]);
+  const handleFilter = () => {
+    setFilterApplied(true); // Mark the filter as applied when the button is clicked
+  };
   const dataTable = true;
 
   const router = useRouter();
 
   const fetchData = useCallback(
-    async (
+    async ({
       sort = '',
       order = '',
       page = 1,
       limit = -1,
       search = '',
       customStartDate = '',
-      customEndDate = ''
-    ) => {
+      customEndDate = '',
+    } = {}) => {
       setLoading(true);
 
-      // If not passed, fallback to current week
+      // Default to current week if no custom dates
       const today = new Date();
       const day = today.getDay();
       const diffToMonday = day === 0 ? -6 : 1 - day;
@@ -92,8 +96,18 @@ const DailyReportTable = ({ station_code }) => {
         setLoading(false);
       }
     },
-    []
+    [] // still okay if you rely on endDate internally or pass it via props
   );
+
+  const fetchParams = useMemo(() => {
+    if (filterApplied) {
+      return {
+        customStartDate: startDate,
+        customEndDate: endDate,
+      };
+    }
+    return {}; // Empty object if no filter has been applied yet
+  }, [startDate, endDate, filterApplied]);
 
   const columns = [
     {
@@ -113,16 +127,16 @@ const DailyReportTable = ({ station_code }) => {
       ),
     },
     {
-      accessorKey: 'health_score',
+      accessorKey: 'health_category',
       header: () => (
         <div className="flex items-center justify-center gap-1 cursor-pointer">
-          Health Score
+          Health Category
         </div>
       ),
     },
     {
-      id: 'health_status',
-      header: 'Health Status',
+      accessorKey: 'health_score',
+      header: 'Health Score',
       cell: ({ row }) => {
         const score = row.original.health_score;
         if (score === null || score === undefined) return 'Empty';
@@ -188,7 +202,7 @@ const DailyReportTable = ({ station_code }) => {
             />
           </div>
           <button
-            onClick={() => fetchData('', '', 1, -1, '', startDate, endDate)}
+            onClick={handleFilter}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded"
           >
             Apply Filter
@@ -198,9 +212,12 @@ const DailyReportTable = ({ station_code }) => {
         <Table
           columns={columns}
           dataTable={dataTable}
+          // data={tableData}
+          initialData={tableData}
           fetchData={fetchData}
           colStyling={colStyling}
           isSearch={false}
+          fetchParams={fetchParams}
         />
       </div>
     </div>
