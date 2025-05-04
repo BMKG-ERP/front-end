@@ -67,13 +67,14 @@ const HealthStatusChart = ({ data }) => {
   const datasets = Object.entries(channelGroups)
     .map(([channel, values]) => {
       const color = channelColors[channel];
-      const dataPoints = formattedTimestamps.map((t) =>
-        values.hasOwnProperty(t) ? values[t] : null
-      );
+      const dataPoints = formattedTimestamps.map((t) => {
+        const v = values[t];
+        return typeof v === 'number' && !isNaN(v) ? v : null;
+      });
 
-      // ✅ Ensure it's not all null or undefined
-      if (dataPoints.every((point) => point === null || point === undefined)) {
-        return null; // ✅ Skip this dataset
+      // ✅ Skip dataset if all points are null
+      if (dataPoints.every((v) => v === null)) {
+        return null;
       }
 
       return {
@@ -85,7 +86,7 @@ const HealthStatusChart = ({ data }) => {
         tension: 0.1,
       };
     })
-    .filter(Boolean); // ✅ Remove null datasets
+    .filter(Boolean);
 
   const chartData = {
     labels: formattedTimestamps,
