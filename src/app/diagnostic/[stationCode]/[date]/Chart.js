@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Line } from 'react-chartjs-2';
+'use client';
 
+import React from 'react';
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,8 +12,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import FilterDropdown from './DropDown';
 
+// Register required components for Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,103 +24,97 @@ ChartJS.register(
   Legend
 );
 
-const HealthStatusChart = ({ data }) => {
-  const allChannels = ['SHN', 'SHZ', 'SHE', 'Other'];
-
+const RechartsHealthChart = ({ data, selectedChannels }) => {
   const channelColors = {
-    SHN: 'rgb(255, 99, 132)',
-    SHZ: 'rgb(54, 162, 235)',
-    SHE: 'rgb(75, 192, 192)',
-    Other: 'rgb(255, 206, 86)', // 🎨 yellow-ish for "Other"
+    SHN: '#FF6384', // Red
+    SHZ: '#36A2EB', // Blue
+    SHE: '#4BC0C0', // Green
+    Other: '#FFCE56', // Yellow
   };
 
-  const [selectedChannels, setSelectedChannels] = useState(allChannels);
+  // Format the data
+  const formattedData = data.map((item) => ({
+    ...item,
+    health_status:
+      item.health_status === null ||
+      item.health_status === '' ||
+      parseFloat(item.health_status) === 0
+        ? 0
+        : parseFloat(item.health_status),
+    channel: item.channel || 'Other',
+  }));
 
-  const filteredData = data.filter(
-    (item) => item.channel && selectedChannels.includes(item.channel)
-  );
+  const channelGroups = ['SHN', 'SHZ', 'SHE', 'Other'];
 
-  const formattedTimestamps = filteredData.map((item) =>
-    new Date(item.report_timestamp).toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-      timeZone: 'UTC',
-    })
-  );
-
-  const channelGroups = {};
-  filteredData.forEach((item) => {
-    const time = new Date(item.report_timestamp).toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-      timeZone: 'UTC',
-    });
-
-    if (item.channel && !channelGroups[item.channel]) {
-      channelGroups[item.channel] = {};
-    }
-
-    channelGroups[item.channel][time] = parseFloat(item.health_status);
-  });
-
-  const datasets = Object.entries(channelGroups).map(([channel, values]) => {
-    const color = channelColors[channel];
-    const dataPoints = formattedTimestamps.map((t) =>
-      typeof values[t] === 'number' && !isNaN(values[t]) ? values[t] : 0
-    );
-
-    return {
-      label: channel,
-      data: dataPoints,
-      borderColor: color,
-      backgroundColor: `${color}33`,
-      fill: false,
-      tension: 0.1,
-    };
-  });
-
+  // Prepare the data for Chart.js
   const chartData = {
-    labels: formattedTimestamps,
-    datasets,
+    labels: [], // Timestamps
+    datasets: [], // Data sets for each channel
   };
 
+  channelGroups.forEach((channel) => {
+    if (selectedChannels.includes(channel)) {
+      const channelData = formattedData.filter(
+        (item) => item.channel === channel
+      );
+
+      // Get the timestamps for the x-axis
+      if (chartData.labels.length === 0) {
+        chartData.labels = channelData.map((item) =>
+          new Date(item.report_timestamp).toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+            timeZone: 'UTC',
+          })
+        );
+      }
+
+      // Prepare the dataset for this channel
+      chartData.datasets.push({
+        label: channel,
+        data: channelData.map((item) => item.health_status),
+        borderColor: channelColors[channel],
+        fill: false,
+        tension: 0.1, // Line smoothing
+      });
+    }
+  });
+
+  // Chart.js options
   const options = {
     responsive: true,
+    scales: {
+      x: {
+        ticks: {
+          maxRotation: 0,
+          minRotation: 0,
+        },
+      },
+      y: {
+        min: 0,
+      },
+    },
+    animation: {
+      duration: 0, // Disable animations for better performance
+    },
     plugins: {
-      title: {
-        display: true,
-        text: 'Health Status per Channel',
+      legend: {
+        position: 'top',
       },
       tooltip: {
         mode: 'index',
         intersect: false,
       },
     },
-    scales: {
-      x: {
-        title: { display: true, text: 'Time (HH:MM:SS)' },
-      },
-      y: {
-        beginAtZero: true,
-        title: { display: true, text: 'Health Status' },
-      },
-    },
   };
 
   return (
     <div className="space-y-4">
-      <FilterDropdown
-        allOptions={allChannels}
-        selectedOptions={selectedChannels}
-        setSelectedOptions={setSelectedChannels}
-      />
       <Line data={chartData} options={options} />
     </div>
   );
 };
 
-export default HealthStatusChart;
+export default RechartsHealthChart;

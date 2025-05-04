@@ -1,19 +1,22 @@
 'use client';
 
-import HealthStatusChart from './Chart';
+import RechartsHealthChart from './Chart'; // Now uses the new Recharts chart
 import DailyHealthTable from './DailyHealthStatus';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { volumeHigh } from 'ionicons/icons';
-
-// import DailyReportTable from './DailyReportTable';
+import FilterDropdown from './DropDown'; // Import the dropdown here
 
 function DiagnosticDetailPage({ params }) {
   const { stationCode, date } = params;
-
   const router = useRouter();
 
   const [data, setData] = useState([]);
+  const [selectedChannels, setSelectedChannels] = useState([
+    'SHN',
+    'SHZ',
+    'SHE',
+    'Other',
+  ]);
   const page = 1;
   const limit = -1;
 
@@ -32,25 +35,15 @@ function DiagnosticDetailPage({ params }) {
 
       if (!result.error && result.code === 200) {
         // Normalize health_status values
-        const allowedChannels = ['SHN', 'SHZ', 'SHE'];
-
-        const normalizedData = result.data.map((item) => {
-          const rawHealthStatus = parseFloat(item.health_status);
-          return {
-            ...item,
-            channel: allowedChannels.includes(item.channel)
-              ? item.channel
-              : 'Other',
-            health_status:
-              item.health_status === null ||
-              item.health_status === '' ||
-              isNaN(rawHealthStatus)
-                ? 0
-                : rawHealthStatus,
-          };
-        });
-
-        console.log(normalizedData);
+        const normalizedData = result.data.map((item) => ({
+          ...item,
+          health_status:
+            item.health_status === null ||
+            item.health_status === '' ||
+            parseFloat(item.health_status) === 0
+              ? 0
+              : parseFloat(item.health_status),
+        }));
 
         setData(normalizedData);
       } else {
@@ -59,8 +52,6 @@ function DiagnosticDetailPage({ params }) {
       }
     } catch (error) {
       console.error('Error fetching stations:', error);
-    } finally {
-      // setLoading(false);
     }
   };
 
@@ -79,12 +70,25 @@ function DiagnosticDetailPage({ params }) {
             ← Back
           </button>
         </div>
-        <h1 className="text-2xl font-bold">
-          Report Detail Station: {stationCode}
-          Selected Date: {date}
-        </h1>
+        <div className="items-center flex flex-col justify-between font-bold">
+          <h1 className="text-2xl  font-bold">
+            Report Detail Station: {stationCode}
+            <br />
+          </h1>
+          <h1 className="text-2xl  font-bold">{date}</h1>
+        </div>
+        {/* Move FilterDropdown here */}
+        <FilterDropdown
+          allOptions={['SHN', 'SHZ', 'SHE', 'Other']}
+          selectedOptions={selectedChannels}
+          setSelectedOptions={setSelectedChannels}
+        />
+
         <div className="w-full">
-          <HealthStatusChart data={data} />
+          <RechartsHealthChart
+            data={data}
+            selectedChannels={selectedChannels}
+          />
         </div>
 
         <div className="w-full h-full mx-auto mb-10 mt-5">
