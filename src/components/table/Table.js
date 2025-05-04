@@ -47,47 +47,36 @@ const Table = ({
   const [categoryFilters, setCategoryFilters] = useState([]);
   const [pendingCategoryFilters, setPendingCategoryFilters] = useState([]);
 
-  if (Object.keys(fetchParams).length > 0) {
-    useEffect(() => {
-      // Ensure it triggers on initial load (when fetchParams is empty) and when fetchParams are provided
-      if (dataTable && (Object.keys(fetchParams).length > 0 || !fetchParams)) {
-        setLoading(true); // In case filters re-fetch
+  const stableFetchParams = useMemo(
+    () => fetchParams,
+    [JSON.stringify(fetchParams)]
+  );
 
-        fetchData({ limit: -1, ...fetchParams }).then((res) => {
-          const allRows = res.data || [];
-          setFullData(allRows);
+  useEffect(() => {
+    if (!dataTable) return;
 
-          setPagination((prev) => ({
-            ...prev,
-            page: 1,
-            totalRows: allRows.length,
-            totalPages: Math.ceil(allRows.length / prev.limit),
-          }));
-          setLoading(false);
-        });
-      }
-    }, [dataTable, fetchData, fetchParams]);
-  } else {
-    useEffect(() => {
-      // Ensure it triggers on initial load (when fetchParams is empty) and when fetchParams are provided
-      if (dataTable) {
-        setLoading(true); // In case filters re-fetch
+    const isUsingParams =
+      stableFetchParams && Object.keys(stableFetchParams).length > 0;
+    const params = isUsingParams
+      ? { limit: -1, ...stableFetchParams }
+      : { limit: -1 };
 
-        fetchData({ limit: -1 }).then((res) => {
-          const allRows = res.data || [];
-          setFullData(allRows);
+    setLoading(true);
 
-          setPagination((prev) => ({
-            ...prev,
-            page: 1,
-            totalRows: allRows.length,
-            totalPages: Math.ceil(allRows.length / prev.limit),
-          }));
-          setLoading(false);
-        });
-      }
-    }, [dataTable, fetchData]);
-  }
+    fetchData(params).then((res) => {
+      const allRows = res.data || [];
+      setFullData(allRows);
+
+      setPagination((prev) => ({
+        ...prev,
+        page: 1,
+        totalRows: allRows.length,
+        totalPages: Math.ceil(allRows.length / prev.limit),
+      }));
+
+      setLoading(false);
+    });
+  }, [dataTable, fetchData, stableFetchParams]);
 
   const filteredData = useMemo(() => {
     if (!dataTable) return data;
