@@ -4,6 +4,7 @@ import HealthStatusChart from './Chart';
 import DailyHealthTable from './DailyHealthStatus';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { volumeHigh } from 'ionicons/icons';
 
 // import DailyReportTable from './DailyReportTable';
 
@@ -30,7 +31,28 @@ function DiagnosticDetailPage({ params }) {
       const result = await response.json();
 
       if (!result.error && result.code === 200) {
-        setData(result.data);
+        // Normalize health_status values
+        const allowedChannels = ['SHN', 'SHZ', 'SHE'];
+
+        const normalizedData = result.data.map((item) => {
+          const rawHealthStatus = parseFloat(item.health_status);
+          return {
+            ...item,
+            channel: allowedChannels.includes(item.channel)
+              ? item.channel
+              : 'Other',
+            health_status:
+              item.health_status === null ||
+              item.health_status === '' ||
+              isNaN(rawHealthStatus)
+                ? 0
+                : rawHealthStatus,
+          };
+        });
+
+        console.log(normalizedData);
+
+        setData(normalizedData);
       } else {
         console.error('Error fetching stations:', result.message);
         setData([]);
