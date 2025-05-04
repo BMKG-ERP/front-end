@@ -63,20 +63,28 @@ const HealthStatusChart = ({ data }) => {
     SHE: 'rgb(75, 192, 192)',
   };
 
-  const datasets = Object.entries(channelGroups).map(([channel, values]) => {
-    const color = channelColors[channel];
-    const dataPoints = formattedTimestamps.map((t) =>
-      values.hasOwnProperty(t) ? values[t] : null
-    );
-    return {
-      label: channel,
-      data: dataPoints,
-      borderColor: color,
-      backgroundColor: `${color}33`,
-      fill: false,
-      tension: 0.1,
-    };
-  });
+  const datasets = Object.entries(channelGroups)
+    .map(([channel, values]) => {
+      const color = channelColors[channel];
+      const dataPoints = formattedTimestamps.map((t) =>
+        values.hasOwnProperty(t) ? values[t] : null
+      );
+
+      // Prevent dataset with all nulls
+      if (dataPoints.every((point) => point === null)) {
+        return null;
+      }
+
+      return {
+        label: channel,
+        data: dataPoints,
+        borderColor: color,
+        backgroundColor: `${color}33`,
+        fill: false,
+        tension: 0.1,
+      };
+    })
+    .filter(Boolean);
 
   const chartData = {
     labels: formattedTimestamps,
