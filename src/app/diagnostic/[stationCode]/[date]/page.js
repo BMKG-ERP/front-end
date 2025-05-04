@@ -34,18 +34,45 @@ function DiagnosticDetailPage({ params }) {
       const result = await response.json();
 
       if (!result.error && result.code === 200) {
-        // Normalize health_status values
+        // Normalize health_status values and handle empty diagnosis and channels
         const normalizedData = result.data.map((item) => ({
           ...item,
           health_status:
             item.health_status === null ||
             item.health_status === '' ||
-            parseFloat(item.health_status) === 0
+            parseInt(item.health_status) === 0
               ? 0
-              : parseFloat(item.health_status),
+              : parseInt(item.health_status),
+          diagnosis:
+            item.diagnosis === null || item.diagnosis === ''
+              ? ''
+              : item.diagnosis,
+          channel: item.channel === null ? 'Other' : item.channel,
+          // Keep the timestamp without rounding
+          report_timestamp: new Date(item.report_timestamp).toISOString(),
         }));
 
-        setData(normalizedData);
+        // Group by timestamp
+
+        // Calculate average health_status for each timestamp group
+
+        // Filter data by selected channels
+        const filteredData = normalizedData.filter((item) =>
+          selectedChannels.includes(item.channel)
+        );
+
+        // Ensure that the data has the right format before passing it to the chart
+        const validData = filteredData.filter(
+          (item) =>
+            item.health_status !== undefined && item.channel !== undefined
+        );
+
+        if (validData.length === 0) {
+          console.error('No valid data to display on the chart.');
+          return;
+        }
+
+        setData(validData);
       } else {
         console.error('Error fetching stations:', result.message);
         setData([]);

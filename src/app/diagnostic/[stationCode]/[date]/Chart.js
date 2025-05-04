@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -13,7 +13,6 @@ import {
   Legend,
 } from 'chart.js';
 
-// Register required components for Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -24,65 +23,73 @@ ChartJS.register(
   Legend
 );
 
+const channelColors = {
+  SHN: '#FF6384',
+  SHZ: '#36A2EB',
+  SHE: '#4BC0C0',
+  Other: '#FFCE56',
+};
+
 const RechartsHealthChart = ({ data, selectedChannels }) => {
-  const channelColors = {
-    SHN: '#FF6384', // Red
-    SHZ: '#36A2EB', // Blue
-    SHE: '#4BC0C0', // Green
-    Other: '#FFCE56', // Yellow
-  };
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) return { labels: [], datasets: [] };
 
-  // Format the data
-  const formattedData = data.map((item) => ({
-    ...item,
-    health_status:
-      item.health_status === null ||
-      item.health_status === '' ||
-      parseFloat(item.health_status) === 0
-        ? 0
-        : parseFloat(item.health_status),
-    channel: item.channel || 'Other',
-  }));
+    const formattedData = data.map((item) => ({
+      ...item,
+      health_status:
+        item.health_status === null ||
+        item.health_status === '' ||
+        parseFloat(item.health_status) === 0
+          ? 0
+          : parseFloat(item.health_status),
+      channel: item.channel || 'Other',
+      report_timestamp: new Date(item.report_timestamp).toISOString(),
+    }));
 
-  const channelGroups = ['SHN', 'SHZ', 'SHE', 'Other'];
+    const labels = formattedData.map((item) =>
+      new Date(item.report_timestamp).toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: 'UTC',
+      })
+    );
 
-  // Prepare the data for Chart.js
-  const chartData = {
-    labels: [], // Timestamps
-    datasets: [], // Data sets for each channel
-  };
-
-  channelGroups.forEach((channel) => {
-    if (selectedChannels.includes(channel)) {
+    let datasets = selectedChannels.map((channel) => {
       const channelData = formattedData.filter(
         (item) => item.channel === channel
       );
 
-      // Get the timestamps for the x-axis
-      if (chartData.labels.length === 0) {
-        chartData.labels = channelData.map((item) =>
-          new Date(item.report_timestamp).toLocaleTimeString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
-            timeZone: 'UTC',
-          })
-        );
-      }
-
-      // Prepare the dataset for this channel
-      chartData.datasets.push({
+      return {
         label: channel,
-        data: channelData.map((item) => item.health_status),
-        borderColor: channelColors[channel],
+        data: channelData.map((item) => item.health_status ?? 0),
+        borderColor: channelColors[channel] || '#999999',
         fill: false,
-        tension: 0.1, // Line smoothing
-      });
-    }
-  });
+        tension: 0,
+      };
+    });
 
-  // Chart.js options
+    // If no channels selected, provide a placeholder empty dataset
+    if (datasets.length === 0) {
+      datasets = [
+        {
+          label: 'No Data',
+          data: new Array(labels.length).fill(null),
+          borderColor: '#ccc',
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0,
+        },
+      ];
+    }
+
+    return {
+      labels,
+      datasets,
+    };
+  }, [data, selectedChannels]);
+
   const options = {
     responsive: true,
     scales: {
@@ -97,7 +104,7 @@ const RechartsHealthChart = ({ data, selectedChannels }) => {
       },
     },
     animation: {
-      duration: 0, // Disable animations for better performance
+      duration: 0,
     },
     plugins: {
       legend: {
@@ -109,6 +116,10 @@ const RechartsHealthChart = ({ data, selectedChannels }) => {
       },
     },
   };
+
+  if (!chartData.labels.length || !chartData.datasets.length) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-4">
