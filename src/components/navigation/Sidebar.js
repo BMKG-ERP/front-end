@@ -1,7 +1,13 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AiOutlineClose, AiOutlineMenu } from 'react-icons/ai';
+import {
+  AiOutlineClose,
+  AiOutlineMenu,
+  AiOutlineFund,
+  AiOutlineCluster,
+} from 'react-icons/ai';
+import { FaGear } from 'react-icons/fa6';
 import Image from 'next/image';
 import {
   IoAnalytics,
@@ -44,10 +50,18 @@ export const useSidebarContext = () => useContext(SidebarContext);
 
 const menuItems = [
   { href: '/', icon: <IoHomeSharp size={28} />, label: 'Home' },
-  { href: '/stations', icon: <HiLibrary size={28} />, label: 'Stations' },
-  { href: '/equipment', icon: <IoAnalytics size={28} />, label: 'Equipment' },
-  { href: '/about', icon: <IoMapSharp size={28} />, label: 'About' },
-  { href: '/contact', icon: <IoSettings size={28} />, label: 'Contact' },
+  {
+    href: '/stations',
+    icon: <AiOutlineCluster size={28} />,
+    label: 'Stations',
+  },
+  { href: '/equipment', icon: <FaGear size={28} />, label: 'Equipment' },
+  {
+    href: '/diagnostic',
+    icon: <AiOutlineFund size={28} />,
+    label: 'Diagnostic',
+  },
+  // { href: '/contact', icon: <IoSettings size={28} />, label: 'Contact' },
 ];
 
 const Sidebar = () => {
@@ -109,16 +123,26 @@ const Sidebar = () => {
             <li key={index} className="hover:opacity-100 opacity-70 w-full">
               <Link
                 href={href}
-                className="flex items-center gap-4 py-2 transition-all duration-300"
+                className="group flex items-center gap-4 py-2 transition-all duration-300 relative"
               >
-                <span className="w-8 flex justify-center">{icon}</span>
-                <span
-                  className={`text-white transition-all duration-300 ${
-                    expanded ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
-                  {label}
+                {/* Icon */}
+                <span className="w-8 flex justify-center relative">
+                  {icon}
+
+                  {/* Tooltip */}
+                  {!expanded && (
+                    <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {label}
+                    </span>
+                  )}
                 </span>
+
+                {/* Label when expanded */}
+                {expanded && (
+                  <span className="text-white transition-all duration-300">
+                    {label}
+                  </span>
+                )}
               </Link>
             </li>
           ))}

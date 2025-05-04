@@ -1,12 +1,9 @@
 'use client';
 
+import DailyReportTable from './DailyReportTable';
 import { useRouter } from 'next/navigation';
 
-import EquipmentDetail from './StationDetail';
-import EquipmentTable from './EquipmentTable';
-import StationDetail from './StationDetail';
-
-function StationDetailPage({ params }) {
+function DiagnosticDetailPage({ params }) {
   const { stationCode } = params; // Extract station code
 
   const router = useRouter();
@@ -19,19 +16,19 @@ function StationDetailPage({ params }) {
             onClick={() => router.back()}
             className="text-teal-700 hover:text-teal-500 flex items-center text-md"
           >
-            ← Back to Station Page
+            ← Back to Diagnostic Page
           </button>
         </div>
-
-        <h1 className="text-2xl font-bold">Station Detail: {stationCode}</h1>
+        <h1 className="text-2xl font-bold">
+          Report Detail Station: {stationCode}
+        </h1>
         <div className="w-full">
-          <StationDetail stationCode={stationCode} />
+          {/* <EquipmentDetail equipmentId={equipmentId} /> */}
         </div>
 
         <div className="w-full h-full mx-auto mb-10 mt-5">
           <div className="flex flex-col items-center mb-5 justify-center z-20 w-full h-[300px] md:h-full">
-            <EquipmentTable stationCode={stationCode} />
-            {/* Pass stationCode explicitly */}
+            <DailyReportTable station_code={stationCode} />
           </div>
         </div>
       </div>
@@ -39,4 +36,4 @@ function StationDetailPage({ params }) {
   );
 }
 
-export default StationDetailPage;
+export default DiagnosticDetailPage;

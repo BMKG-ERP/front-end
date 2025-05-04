@@ -25,6 +25,8 @@ const Table = ({
   categories,
   searchPlaceholder,
   miniSize = false, // <-- ADDED
+  isSearch = true,
+  fetchParams = {},
 }) => {
   const [data, setData] = useState(dataProp || initialData || []);
   const [sorting, setSorting] = useState([]);
@@ -45,22 +47,47 @@ const Table = ({
   const [categoryFilters, setCategoryFilters] = useState([]);
   const [pendingCategoryFilters, setPendingCategoryFilters] = useState([]);
 
-  useEffect(() => {
-    if (dataTable) {
-      fetchData({ limit: -1 }).then((res) => {
-        const allRows = res.data || [];
-        setFullData(allRows);
+  if (Object.keys(fetchParams).length > 0) {
+    useEffect(() => {
+      // Ensure it triggers on initial load (when fetchParams is empty) and when fetchParams are provided
+      if (dataTable && (Object.keys(fetchParams).length > 0 || !fetchParams)) {
+        setLoading(true); // In case filters re-fetch
 
-        setPagination((prev) => ({
-          ...prev,
-          page: 1,
-          totalRows: allRows.length,
-          totalPages: Math.ceil(allRows.length / prev.limit),
-        }));
-        setLoading(false);
-      });
-    }
-  }, [fetchData]);
+        fetchData({ limit: -1, ...fetchParams }).then((res) => {
+          const allRows = res.data || [];
+          setFullData(allRows);
+
+          setPagination((prev) => ({
+            ...prev,
+            page: 1,
+            totalRows: allRows.length,
+            totalPages: Math.ceil(allRows.length / prev.limit),
+          }));
+          setLoading(false);
+        });
+      }
+    }, [dataTable, fetchData, fetchParams]);
+  } else {
+    useEffect(() => {
+      // Ensure it triggers on initial load (when fetchParams is empty) and when fetchParams are provided
+      if (dataTable) {
+        setLoading(true); // In case filters re-fetch
+
+        fetchData({ limit: -1 }).then((res) => {
+          const allRows = res.data || [];
+          setFullData(allRows);
+
+          setPagination((prev) => ({
+            ...prev,
+            page: 1,
+            totalRows: allRows.length,
+            totalPages: Math.ceil(allRows.length / prev.limit),
+          }));
+          setLoading(false);
+        });
+      }
+    }, [dataTable, fetchData]);
+  }
 
   const filteredData = useMemo(() => {
     if (!dataTable) return data;
@@ -172,25 +199,27 @@ const Table = ({
         )}
 
         {/* Search Input */}
-        <div className="relative w-full md:w-80">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPagination((prev) => ({ ...prev, page: 1 }));
-            }}
-            placeholder={searchPlaceholder}
-            className={`w-full border border-gray-300 rounded 
+        {isSearch && (
+          <div className="relative w-full md:w-80">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPagination((prev) => ({ ...prev, page: 1 }));
+              }}
+              placeholder={searchPlaceholder}
+              className={`w-full border border-gray-300 rounded 
               ${miniSize ? 'p-1 text-sm' : 'p-2'}
             `}
-          />
-          <FaSearch
-            className={`absolute right-2 ${
-              miniSize ? 'top-2' : 'top-3'
-            } text-gray-400`}
-          />
-        </div>
+            />
+            <FaSearch
+              className={`absolute right-2 ${
+                miniSize ? 'top-2' : 'top-3'
+              } text-gray-400`}
+            />
+          </div>
+        )}
 
         {/* Create Button (Optional) */}
         {createButton && (
