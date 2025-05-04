@@ -71,9 +71,9 @@ const HealthStatusChart = ({ data }) => {
         values.hasOwnProperty(t) ? values[t] : null
       );
 
-      // Prevent dataset with all nulls
-      if (dataPoints.every((point) => point === null)) {
-        return null;
+      // ✅ Ensure it's not all null or undefined
+      if (dataPoints.every((point) => point === null || point === undefined)) {
+        return null; // ✅ Skip this dataset
       }
 
       return {
@@ -85,7 +85,7 @@ const HealthStatusChart = ({ data }) => {
         tension: 0.1,
       };
     })
-    .filter(Boolean);
+    .filter(Boolean); // ✅ Remove null datasets
 
   const chartData = {
     labels: formattedTimestamps,
