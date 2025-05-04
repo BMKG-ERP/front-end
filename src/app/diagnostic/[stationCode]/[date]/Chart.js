@@ -24,7 +24,15 @@ ChartJS.register(
 );
 
 const HealthStatusChart = ({ data }) => {
-  const allChannels = ['SHN', 'SHZ', 'SHE'];
+  const allChannels = ['SHN', 'SHZ', 'SHE', 'Other'];
+
+  const channelColors = {
+    SHN: 'rgb(255, 99, 132)',
+    SHZ: 'rgb(54, 162, 235)',
+    SHE: 'rgb(75, 192, 192)',
+    Other: 'rgb(255, 206, 86)', // 🎨 yellow-ish for "Other"
+  };
+
   const [selectedChannels, setSelectedChannels] = useState(allChannels);
 
   const filteredData = data.filter(
@@ -58,35 +66,21 @@ const HealthStatusChart = ({ data }) => {
     channelGroups[item.channel][time] = parseFloat(item.health_status);
   });
 
-  const channelColors = {
-    SHN: 'rgb(255, 99, 132)',
-    SHZ: 'rgb(54, 162, 235)',
-    SHE: 'rgb(75, 192, 192)',
-  };
+  const datasets = Object.entries(channelGroups).map(([channel, values]) => {
+    const color = channelColors[channel];
+    const dataPoints = formattedTimestamps.map((t) =>
+      typeof values[t] === 'number' && !isNaN(values[t]) ? values[t] : 0
+    );
 
-  const datasets = Object.entries(channelGroups)
-    .map(([channel, values]) => {
-      const color = channelColors[channel];
-      const dataPoints = formattedTimestamps.map((t) => {
-        const v = values[t];
-        return typeof v === 'number' && !isNaN(v) ? v : null;
-      });
-
-      // ✅ Skip dataset if all points are null
-      if (dataPoints.every((v) => v === null)) {
-        return null;
-      }
-
-      return {
-        label: channel,
-        data: dataPoints,
-        borderColor: color,
-        backgroundColor: `${color}33`,
-        fill: false,
-        tension: 0.1,
-      };
-    })
-    .filter(Boolean);
+    return {
+      label: channel,
+      data: dataPoints,
+      borderColor: color,
+      backgroundColor: `${color}33`,
+      fill: false,
+      tension: 0.1,
+    };
+  });
 
   const chartData = {
     labels: formattedTimestamps,
