@@ -126,8 +126,8 @@ const StationTable = ({
       ),
     },
     {
-      accessorKey: 'instalation_date',
-      header: 'Instalation Datel',
+      accessorKey: 'start_date',
+      header: 'Instalation Date',
       enableSorting: true,
     },
     {

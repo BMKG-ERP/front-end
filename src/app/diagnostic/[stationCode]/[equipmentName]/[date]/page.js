@@ -10,13 +10,17 @@ function DiagnosticDetailPage({ params }) {
   const { stationCode, date } = params;
   const router = useRouter();
 
+  const equipmentName = params.equipmentName ?? 'Seismometer';
+
+  const seismoChannels = ['SHN', 'SHZ', 'SHE'];
+  const nonSeismoChannels = ['Other'];
+
+  // Available channels based on the equipment
+  const availableChannels =
+    equipmentName === 'Seismometer' ? seismoChannels : nonSeismoChannels;
+
   const [data, setData] = useState([]);
-  const [selectedChannels, setSelectedChannels] = useState([
-    'SHN',
-    'SHZ',
-    'SHE',
-    'Other',
-  ]);
+  const [selectedChannels, setSelectedChannels] = useState(availableChannels);
   const page = 1;
   const limit = -1;
 
@@ -35,33 +39,49 @@ function DiagnosticDetailPage({ params }) {
 
       if (!result.error && result.code === 200) {
         // Normalize health_status values and handle empty diagnosis and channels
-        const normalizedData = result.data.map((item) => ({
-          ...item,
-          health_status:
-            item.health_status === null ||
-            item.health_status === '' ||
-            parseInt(item.health_status) === 0
-              ? 0
-              : parseInt(item.health_status),
-          diagnosis:
-            item.diagnosis === null || item.diagnosis === ''
-              ? ''
-              : item.diagnosis,
-          channel: item.channel === null ? 'Other' : item.channel,
-          // Keep the timestamp without rounding
-          report_timestamp: new Date(item.report_timestamp).toISOString(),
-        }));
+        const normalizedData = result.data.map((item) => {
+          // Parse the report_timestamp as a Date object
+          const date = new Date(item.report_timestamp);
 
-        // Group by timestamp
+          // Check if the date is valid
+          if (isNaN(date)) {
+            console.warn('Invalid report_timestamp:', item.report_timestamp);
+            return {
+              ...item,
+              report_timestamp: null, // Set invalid timestamp as null or handle accordingly
+            };
+          }
 
-        // Calculate average health_status for each timestamp group
+          // Normalize the health_status, diagnosis, and channel
+          return {
+            ...item,
+            health_status:
+              item.health_status === null ||
+              item.health_status === '' ||
+              parseInt(item.health_status) === 0
+                ? 0
+                : parseInt(item.health_status),
+            diagnosis:
+              item.diagnosis === null || item.diagnosis === ''
+                ? ''
+                : item.diagnosis,
+            channel: item.channel === null ? 'Other' : item.channel,
+            // Convert to UTC and return as an ISO string (no timezone adjustment)
+            report_timestamp: date.toISOString(),
+          };
+        });
 
-        // Filter data by selected channels
-        const filteredData = normalizedData.filter((item) =>
-          selectedChannels.includes(item.channel)
-        );
+        const filteredData = normalizedData.filter((item) => {
+          if (equipmentName === 'Seismometer') {
+            return (
+              selectedChannels.includes(item.channel) &&
+              item.channel !== 'Other'
+            );
+          } else {
+            return !['SHE', 'SHZ', 'SHN'].includes(item.channel);
+          }
+        });
 
-        // Ensure that the data has the right format before passing it to the chart
         const validData = filteredData.filter(
           (item) =>
             item.health_status !== undefined && item.channel !== undefined
@@ -69,6 +89,7 @@ function DiagnosticDetailPage({ params }) {
 
         if (validData.length === 0) {
           console.error('No valid data to display on the chart.');
+          setData([]);
           return;
         }
 
@@ -83,8 +104,9 @@ function DiagnosticDetailPage({ params }) {
   };
 
   useEffect(() => {
+    setSelectedChannels(availableChannels);
     fetchData();
-  }, []);
+  }, [equipmentName]);
 
   return (
     <div className="z-10 h-full w-full flex justify-center">
@@ -102,19 +124,24 @@ function DiagnosticDetailPage({ params }) {
             Report Detail Station: {stationCode}
             <br />
           </h1>
+          <h1 className="text-2xl  font-bold">{equipmentName}</h1>
           <h1 className="text-2xl  font-bold">{date}</h1>
         </div>
-        {/* Move FilterDropdown here */}
-        <FilterDropdown
-          allOptions={['SHN', 'SHZ', 'SHE', 'Other']}
-          selectedOptions={selectedChannels}
-          setSelectedOptions={setSelectedChannels}
-        />
+
+        {/* Conditionally render FilterDropdown based on equipmentName */}
+        {equipmentName === 'Seismometer' && (
+          <FilterDropdown
+            allOptions={seismoChannels}
+            selectedOptions={selectedChannels}
+            setSelectedOptions={setSelectedChannels}
+          />
+        )}
 
         <div className="w-full">
           <RechartsHealthChart
             data={data}
             selectedChannels={selectedChannels}
+            equipmentName={equipmentName}
           />
         </div>
 

@@ -1,9 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
-
 import Table from '@/components/table/Table';
 
 const DailyHealthTable = ({ station_code, report_date }) => {
@@ -17,8 +14,6 @@ const DailyHealthTable = ({ station_code, report_date }) => {
   });
 
   const dataTable = true;
-
-  const router = useRouter();
 
   const fetchData = useCallback(
     async (
@@ -40,6 +35,8 @@ const DailyHealthTable = ({ station_code, report_date }) => {
         url.searchParams.append('page', page);
         url.searchParams.append('limit', limit);
         url.searchParams.append('date', report_date);
+
+        // Add filter for equipment_name (Seismometer or others)
 
         const response = await fetch(url.toString());
         const result = await response.json();
@@ -74,7 +71,7 @@ const DailyHealthTable = ({ station_code, report_date }) => {
         setLoading(false);
       }
     },
-    []
+    [station_code, report_date] // Dependencies include equipment name filter
   );
 
   const columns = [
@@ -99,16 +96,22 @@ const DailyHealthTable = ({ station_code, report_date }) => {
 
         const date = new Date(value);
 
-        const pad = (n) => n.toString().padStart(2, '0');
+        const options = {
+          timeZone: 'UTC', // Keep it in UTC timezone
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        };
 
-        const day = pad(date.getDate());
-        const month = pad(date.getMonth() + 1);
-        const year = date.getFullYear();
-        const hours = pad(date.getHours());
-        const minutes = pad(date.getMinutes());
-        const seconds = pad(date.getSeconds());
+        const formattedDate = new Intl.DateTimeFormat('en-GB', options).format(
+          date
+        );
 
-        return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+        return formattedDate;
       },
     },
     {
@@ -148,4 +151,5 @@ const DailyHealthTable = ({ station_code, report_date }) => {
     </div>
   );
 };
+
 export default DailyHealthTable;
