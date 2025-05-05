@@ -2,7 +2,7 @@
 
 import IndonesiaMap from './IndonesianMapWrapper';
 import EquipmentCategory from './EquipmentCategory';
-import SummaryDisplay from './EquipmentName';
+import SummaryDisplay from './SummaryDisplay';
 
 function LandingPage() {
   return (

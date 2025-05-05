@@ -65,12 +65,13 @@ const SummaryDisplay = () => {
   );
 
   return (
-    <div className="p-4 top-0 flex flex-col">
+    <div className="w-full p-4 top-0 flex flex-col">
       {/* Grid for summary data including Active Equipment */}
-      <h1>Total Number Of</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <h1 className="text-xl font-bold mb-4">Total Number Of</h1>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
         {/* Active Equipment Box */}
-        <div className="border rounded-lg p-4 shadow-lg w-full">
+        <div className="border rounded-lg p-4 shadow-lg w-full min-w-[200px]">
           <div className="font-bold text-lg">Active Equipment</div>
           <div className="text-sm text-gray-700">
             Total Count: {totalItemCount}
@@ -81,8 +82,7 @@ const SummaryDisplay = () => {
         {summaryData.map((entry, index) => (
           <div
             key={index}
-            className="border rounded-lg p-4 shadow-lg w-full"
-            style={{ minWidth: '200px' }}
+            className="border rounded-lg p-4 shadow-lg w-full min-w-[200px]"
           >
             <div className="font-bold text-lg">{entry.item}</div>
             <div className="text-sm text-gray-700">
@@ -94,32 +94,46 @@ const SummaryDisplay = () => {
 
       {/* Grid for summary health data with progress bars */}
       <h2 className="mt-8 font-bold text-xl">Equipment Health</h2>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mt-4">
-        {summaryHealthData.map((entry, index) => (
-          <div
-            key={index}
-            className="border rounded-lg p-4 shadow-lg w-full"
-            style={{ minWidth: '200px' }}
-          >
-            <div className="font-bold text-lg">{entry.item} Health</div>
+        {summaryHealthData.map((entry, index) => {
+          let barColor = 'bg-gray-400'; // default
 
-            {/* Progress bar with 0% and 100% labels */}
-            <div className="flex items-center">
-              <span className="text-sm text-gray-700">0%</span>
-              <div className="w-full bg-gray-200 rounded-full h-4 mx-2">
-                <div
-                  className="bg-blue-500 h-full rounded-full"
-                  style={{ width: `${entry.percentage}%` }}
-                ></div>
+          if (entry.percentage === null || entry.percentage === undefined) {
+            barColor = 'bg-gray-400';
+          } else if (entry.percentage < 35) {
+            barColor = 'bg-red-500';
+          } else if (entry.percentage < 80) {
+            barColor = 'bg-yellow-400';
+          } else {
+            barColor = 'bg-green-500';
+          }
+
+          return (
+            <div
+              key={index}
+              className="border rounded-lg p-4 shadow-lg w-full min-w-[200px]"
+            >
+              <div className="font-bold text-lg">{entry.item} Health</div>
+
+              {/* Progress bar with 0% and 100% labels */}
+              <div className="flex items-center mt-2">
+                <span className="text-sm text-gray-700">0%</span>
+                <div className="w-full bg-gray-200 rounded-full h-4 mx-2">
+                  <div
+                    className={`h-full rounded-full ${barColor}`}
+                    style={{ width: `${entry.percentage}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm text-gray-700">100%</span>
               </div>
-              <span className="text-sm text-gray-700">100%</span>
-            </div>
 
-            <div className="text-sm text-gray-700 mt-2">
-              {entry.percentage}% Health
+              <div className="text-sm text-gray-700 mt-2">
+                {entry.percentage ?? 'N/A'}% Health
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

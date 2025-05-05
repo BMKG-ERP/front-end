@@ -28,7 +28,8 @@ const DiagnosticTable = ({}) => {
         const url = new URL(
           `${
             process.env.NEXT_PUBLIC_LOCAL_API +
-            process.env.NEXT_PUBLIC_DAILY_REPORT_API
+            process.env.NEXT_PUBLIC_DAILY_REPORT_API +
+            process.env.NEXT_PUBLIC_DAILY_REPORT_LIST_STATION_API
           }`
         );
 

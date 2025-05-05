@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
-  CategoryScale,
+  TimeScale,
   LinearScale,
   PointElement,
   LineElement,
@@ -12,9 +12,10 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import 'chartjs-adapter-date-fns';
 
 ChartJS.register(
-  CategoryScale,
+  TimeScale,
   LinearScale,
   PointElement,
   LineElement,
@@ -30,31 +31,23 @@ const channelColors = {
   Other: '#FFCE56',
 };
 
-const RechartsHealthChart = ({ data, selectedChannels }) => {
+const RechartsHealthChart = ({ data, selectedChannels, equipmentName }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // useMemo to format data only once based on new data or channels
   const chartData = useMemo(() => {
-    if (!data || data.length === 0) return { labels: [], datasets: [] };
+    if (!data || data.length === 0) return { datasets: [] };
 
     const formattedData = data.map((item) => ({
-      ...item,
-      health_status:
+      x: new Date(item.report_timestamp), // important: actual Date object
+      y:
         item.health_status === null ||
         item.health_status === '' ||
         parseFloat(item.health_status) === 0
           ? 0
           : parseFloat(item.health_status),
       channel: item.channel || 'Other',
-      report_timestamp: new Date(item.report_timestamp).toISOString(),
     }));
-
-    const labels = formattedData.map((item) =>
-      new Date(item.report_timestamp).toLocaleTimeString('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-        timeZone: 'UTC',
-      })
-    );
 
     let datasets = selectedChannels.map((channel) => {
       const channelData = formattedData.filter(
@@ -63,19 +56,18 @@ const RechartsHealthChart = ({ data, selectedChannels }) => {
 
       return {
         label: channel,
-        data: channelData.map((item) => item.health_status ?? 0),
+        data: channelData.map(({ x, y }) => ({ x, y })),
         borderColor: channelColors[channel] || '#999999',
         fill: false,
         tension: 0,
       };
     });
 
-    // If no channels selected, provide a placeholder empty dataset
     if (datasets.length === 0) {
       datasets = [
         {
           label: 'No Data',
-          data: new Array(labels.length).fill(null),
+          data: [],
           borderColor: '#ccc',
           borderDash: [5, 5],
           fill: false,
@@ -84,22 +76,31 @@ const RechartsHealthChart = ({ data, selectedChannels }) => {
       ];
     }
 
-    return {
-      labels,
-      datasets,
-    };
+    return { datasets };
   }, [data, selectedChannels]);
 
+  // Chart.js options
   const options = {
     responsive: true,
     scales: {
       x: {
+        type: 'time',
+        time: {
+          unit: 'hour',
+          tooltipFormat: 'HH:mm:ss',
+          displayFormats: {
+            hour: 'HH:mm',
+          },
+        },
         ticks: {
-          maxRotation: 0,
-          minRotation: 0,
+          callback: function (value) {
+            const date = new Date(value);
+            return date.toISOString().slice(11, 19); // Show HH:mm:ss UTC
+          },
         },
       },
       y: {
+        beginAtZero: true,
         min: 0,
       },
     },
@@ -109,6 +110,7 @@ const RechartsHealthChart = ({ data, selectedChannels }) => {
     plugins: {
       legend: {
         position: 'top',
+        display: equipmentName === 'Seismometer', // Hide legend if not Seismometer
       },
       tooltip: {
         mode: 'index',
@@ -117,13 +119,30 @@ const RechartsHealthChart = ({ data, selectedChannels }) => {
     },
   };
 
-  if (!chartData.labels.length || !chartData.datasets.length) {
-    return <div>Loading...</div>;
+  useEffect(() => {
+    // Trigger only once when the component mounts and data is updated
+    if (data && data.length > 0) {
+      setIsLoading(false); // Stop loading once data is ready
+    }
+  }, [data]); // Depend on data, so it updates only when data changes
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-[300px] flex justify-center items-center">
+        <span>Loading...</span>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
-      <Line data={chartData} options={options} />
+      {data.length === 0 ? (
+        <div className="w-full h-[300px] flex justify-center items-center">
+          <span>No Data</span>
+        </div>
+      ) : (
+        <Line data={chartData} options={options} />
+      )}
     </div>
   );
 };

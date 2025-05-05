@@ -2,15 +2,41 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaEye } from 'react-icons/fa';
+import { DateRange } from 'react-date-range';
+import { addDays, format } from 'date-fns';
 
 import Table from '@/components/table/Table';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
 
 const DailyReportTable = ({ station_code }) => {
   const [loading, setLoading] = useState(true);
   const [filterApplied, setFilterApplied] = useState(false);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  const [popupRow, setPopupRow] = useState(null); // store the selected row for the popup
+
+  const handleRoute = (equipment) => {
+    if (!popupRow) return;
+    const { station_code, report_date } = popupRow.original;
+    router.push(`/diagnostic/${station_code}/${equipment}/${report_date}`);
+    setPopupRow(null); // close popup
+  };
+
+  // Default date range: today and 6 days ago
+  const today = new Date();
+  const sevenDaysAgo = addDays(today, -6);
+
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: sevenDaysAgo,
+      endDate: today,
+      key: 'selection',
+    },
+  ]);
+
+  const [tempDateRange, setTempDateRange] = useState(dateRange); // Temporary date range for user input
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -20,12 +46,13 @@ const DailyReportTable = ({ station_code }) => {
   });
 
   const [tableData, setTableData] = useState([]);
-  const handleFilter = () => {
-    setFilterApplied(true); // Mark the filter as applied when the button is clicked
-  };
-  const dataTable = true;
-
   const router = useRouter();
+
+  const handleFilter = () => {
+    setDateRange(tempDateRange); // Apply the selected date range
+    setFilterApplied(true);
+    setShowCalendar(false);
+  };
 
   const fetchData = useCallback(
     async ({
@@ -39,19 +66,10 @@ const DailyReportTable = ({ station_code }) => {
     } = {}) => {
       setLoading(true);
 
-      // Default to current week if no custom dates
-      const today = new Date();
-      const day = today.getDay();
-      const diffToMonday = day === 0 ? -6 : 1 - day;
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + diffToMonday);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-
       const formatDate = (date) => date.toISOString().split('T')[0];
 
-      const start_date = customStartDate || formatDate(monday);
-      const end_date = customEndDate || formatDate(sunday);
+      const start_date = customStartDate || formatDate(dateRange[0].startDate);
+      const end_date = customEndDate || formatDate(dateRange[0].endDate);
 
       try {
         const url = new URL(
@@ -96,18 +114,19 @@ const DailyReportTable = ({ station_code }) => {
         setLoading(false);
       }
     },
-    [] // still okay if you rely on endDate internally or pass it via props
+    [dateRange, station_code]
   );
 
   const fetchParams = useMemo(() => {
     if (filterApplied) {
+      const formatDate = (date) => date.toISOString().split('T')[0];
       return {
-        customStartDate: startDate,
-        customEndDate: endDate,
+        customStartDate: formatDate(dateRange[0].startDate),
+        customEndDate: formatDate(dateRange[0].endDate),
       };
     }
-    return {}; // Empty object if no filter has been applied yet
-  }, [startDate, endDate, filterApplied]);
+    return {};
+  }, [dateRange, filterApplied]);
 
   const columns = [
     {
@@ -117,7 +136,6 @@ const DailyReportTable = ({ station_code }) => {
         return (pagination.page - 1) * pagination.limit + row.index + 1;
       },
     },
-
     {
       accessorKey: 'report_date',
       header: () => (
@@ -153,11 +171,7 @@ const DailyReportTable = ({ station_code }) => {
           <div className="relative group">
             <FaEye
               className="text-xl text-cyan-700 hover:text-cyan-900 cursor-pointer"
-              onClick={() =>
-                router.push(
-                  `/diagnostic/${row.original.station_code}/${row.original.report_date}`
-                )
-              }
+              onClick={() => setPopupRow(row)} // open popup and save current row
             />
             <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-auto px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
               View
@@ -169,41 +183,45 @@ const DailyReportTable = ({ station_code }) => {
   ];
 
   const colStyling = {
-    equipment_id: 'font-bold text-blue-950', // Bold & blue
-    status: 'font-bold text-blue-950', // Bold & blue
+    equipment_id: 'font-bold text-blue-950',
+    status: 'font-bold text-blue-950',
   };
 
   return (
     <div className="w-full max-w-full p-4">
       <div className="relative w-full h-full">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
-          <div className="flex flex-col">
-            <label htmlFor="start-date" className="text-sm font-medium">
-              Start Date
-            </label>
-            <input
-              id="start-date"
-              type="date"
-              className="border border-gray-300 rounded p-2"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
+          <div className="relative">
+            <button
+              className="bg-gray-100 border border-gray-300 rounded px-4 py-2"
+              onClick={() => setShowCalendar(!showCalendar)}
+            >
+              {`${format(tempDateRange[0].startDate, 'yyyy-MM-dd')} to ${format(
+                tempDateRange[0].endDate,
+                'yyyy-MM-dd'
+              )}`}
+            </button>
+            {showCalendar && (
+              <div className="absolute z-50 mt-2 shadow-md">
+                <DateRange
+                  editableDateInputs={true}
+                  onChange={(item) => {
+                    if (item.selection.endDate > today) {
+                      item.selection.endDate = today;
+                    }
+                    setTempDateRange([item.selection]); // Update temporary date range
+                  }}
+                  moveRangeOnFirstSelection={false}
+                  ranges={tempDateRange} // Use the temporary date range here
+                  maxDate={today}
+                />
+              </div>
+            )}
           </div>
-          <div className="flex flex-col">
-            <label htmlFor="end-date" className="text-sm font-medium">
-              End Date
-            </label>
-            <input
-              id="end-date"
-              type="date"
-              className="border border-gray-300 rounded p-2"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
+
           <button
             onClick={handleFilter}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded"
+            className="bg-teal-800 hover:bg-teal-600 text-white font-medium px-4 py-2 rounded"
           >
             Apply Filter
           </button>
@@ -211,16 +229,44 @@ const DailyReportTable = ({ station_code }) => {
 
         <Table
           columns={columns}
-          dataTable={dataTable}
-          // data={tableData}
-          initialData={tableData}
+          dataTable={true}
           fetchData={fetchData}
           colStyling={colStyling}
           isSearch={false}
           fetchParams={fetchParams}
         />
+        {popupRow && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center">
+            <div className="bg-white p-6 rounded shadow-lg max-w-xs w-full">
+              <h3 className="text-lg font-semibold mb-4 text-center">
+                Select Equipment
+              </h3>
+              <div className="flex justify-center gap-4 mb-4">
+                <button
+                  className="px-4 py-2 bg-teal-800 text-white rounded hover:bg-teal-600"
+                  onClick={() => handleRoute('Seismometer')}
+                >
+                  Seismometer
+                </button>
+                <button
+                  className="px-4 py-2 bg-teal-800 text-white rounded hover:bg-teal-600"
+                  onClick={() => handleRoute('Battery')}
+                >
+                  Battery
+                </button>
+              </div>
+              <button
+                onClick={() => setPopupRow(null)}
+                className="text-sm text-gray-500 hover:text-gray-800 block mx-auto"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
 export default DailyReportTable;
