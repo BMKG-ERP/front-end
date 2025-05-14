@@ -22,6 +22,7 @@ const StationTable = ({
   const dataTable = true;
 
   const router = useRouter();
+  const [categories, setCategories] = useState([]);
 
   const fetchData = useCallback(
     async (sort = '', order = '', page = 1, limit = -1, search = '') => {
@@ -76,8 +77,37 @@ const StationTable = ({
     []
   );
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const url = new URL(
+        `${
+          process.env.NEXT_PUBLIC_LOCAL_API +
+          process.env.NEXT_PUBLIC_STATION_API +
+          process.env.NEXT_PUBLIC_STATION_CATEGORIES_API
+        }`
+      );
+
+      const response = await fetch(url.toString());
+      const result = await response.json();
+
+      if (!result.error) {
+        const categoryNames = result.data.map((item) => item.category);
+        setCategories(categoryNames); // Only set the names
+      } else {
+        console.error('Error fetching categories:', result.message);
+        setCategories([]);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setCategories([]);
+    } finally {
+      // setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchData('', '', 1, -1, '');
+    fetchCategories();
   }, []);
 
   const columns = [
@@ -210,7 +240,7 @@ const StationTable = ({
           createButton={true}
           createFunction={openCreateStation}
           createName={'Create Station'}
-          categories={['Stasiun Gempa Bumi', 'DUMMY CATEGORY']}
+          categories={categories}
           searchPlaceholder={'Search Station...'}
         />
       </div>
