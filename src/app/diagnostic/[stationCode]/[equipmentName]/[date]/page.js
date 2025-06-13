@@ -3,14 +3,14 @@
 import RechartsHealthChart from './Chart'; // Now uses the new Recharts chart
 import DailyHealthTable from './DailyHealthStatus';
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import FilterDropdown from './DropDown'; // Import the dropdown here
 
-function DiagnosticDetailPage({ params }) {
-  const { stationCode, date } = params;
+function DiagnosticDetailPage() {
   const router = useRouter();
-
-  const equipmentName = params.equipmentName ?? 'Seismometer';
+  const params = useParams();
+  const { stationCode, date, equipmentName: equipmentNameFromParams } = params;
+  const equipmentName = equipmentNameFromParams ?? 'Seismometer';
 
   const seismoChannels = ['SHN', 'SHZ', 'SHE'];
   const nonSeismoChannels = ['Other'];
