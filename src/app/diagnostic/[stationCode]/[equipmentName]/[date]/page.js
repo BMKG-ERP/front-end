@@ -3,14 +3,14 @@
 import RechartsHealthChart from './Chart'; // Now uses the new Recharts chart
 import DailyHealthTable from './DailyHealthStatus';
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import FilterDropdown from './DropDown'; // Import the dropdown here
 
-function DiagnosticDetailPage({ params }) {
-  const { stationCode, date } = params;
+function DiagnosticDetailPage() {
   const router = useRouter();
-
-  const equipmentName = params.equipmentName ?? 'Seismometer';
+  const params = useParams();
+  const { stationCode, date, equipmentName: equipmentNameFromParams } = params;
+  const equipmentName = equipmentNameFromParams ?? 'Seismometer';
 
   const seismoChannels = ['SHN', 'SHZ', 'SHE'];
   const nonSeismoChannels = ['Other'];
@@ -65,21 +65,18 @@ function DiagnosticDetailPage({ params }) {
               item.diagnosis === null || item.diagnosis === ''
                 ? ''
                 : item.diagnosis,
-            channel: item.channel === null ? 'Other' : item.channel,
+            // For non-seismometer equipment, group all channels as 'Other'
+            // For seismometer equipment, keep the original channel names
+            channel: equipmentName === 'Seismometer' 
+              ? (item.channel === null ? 'Other' : item.channel)
+              : 'Other',
             // Convert to UTC and return as an ISO string (no timezone adjustment)
             report_timestamp: date.toISOString(),
           };
         });
 
         const filteredData = normalizedData.filter((item) => {
-          if (equipmentName === 'Seismometer') {
-            return (
-              selectedChannels.includes(item.channel) &&
-              item.channel !== 'Other'
-            );
-          } else {
-            return !['SHE', 'SHZ', 'SHN'].includes(item.channel);
-          }
+          return selectedChannels.includes(item.channel);
         });
 
         const validData = filteredData.filter(
