@@ -24,10 +24,19 @@ const DailyReportTable = ({ station_code, data, fetchData, pagination }) => {
   const columns = [
     {
       id: 'no',
-      header: 'No',
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
+          No
+        </div>
+      ),
       cell: ({ row }) => {
-        return (pagination.page - 1) * pagination.limit + row.index + 1;
+        return (
+          <div className="text-center">
+            {(pagination.page - 1) * pagination.limit + row.index + 1}
+          </div>
+        );
       },
+      size: 60,
     },
     {
       accessorKey: 'report_date',
@@ -36,6 +45,12 @@ const DailyReportTable = ({ station_code, data, fetchData, pagination }) => {
           Date
         </div>
       ),
+      cell: ({ getValue }) => (
+        <div className="text-center">
+          {getValue()}
+        </div>
+      ),
+      size: 120,
     },
     {
       accessorKey: 'health_category',
@@ -44,24 +59,45 @@ const DailyReportTable = ({ station_code, data, fetchData, pagination }) => {
           Health Category
         </div>
       ),
+      cell: ({ getValue }) => (
+        <div className="text-center">
+          {getValue()}
+        </div>
+      ),
+      size: 150,
     },
     {
       accessorKey: 'health_score',
-      header: 'Health Score',
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
+          Health Score
+        </div>
+      ),
       cell: ({ row }) => {
         const score = row.original.health_score;
+        let displayValue;
         if (score === null || score === undefined) {
-          return 'Empty';
+          displayValue = '-';
+        } else if (typeof score === 'number') {
+          displayValue = score.toFixed(2);
+        } else {
+          displayValue = score;
         }
-        if (typeof score === 'number') {
-          return score.toFixed(2);
-        }
-        return score;
+        return (
+          <div className="text-center">
+            {displayValue}
+          </div>
+        );
       },
+      size: 120,
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: () => (
+        <div className="flex items-center justify-center gap-1 cursor-pointer">
+          Actions
+        </div>
+      ),
       cell: ({ row }) => (
         <div className="flex gap-4 items-center justify-center">
           <div className="relative group">
@@ -75,6 +111,7 @@ const DailyReportTable = ({ station_code, data, fetchData, pagination }) => {
           </div>
         </div>
       ),
+      size: 100,
     },
   ];
 
