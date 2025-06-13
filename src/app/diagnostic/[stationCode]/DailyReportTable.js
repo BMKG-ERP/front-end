@@ -157,10 +157,13 @@ const DailyReportTable = ({ station_code }) => {
       header: 'Health Score',
       cell: ({ row }) => {
         const score = row.original.health_score;
-        if (score === null || score === undefined) return 'Empty';
-        if (score < 50) return 'Poor';
-        if (score < 90) return 'Fair';
-        return 'Excellent';
+        if (score === null || score === undefined) {
+          return 'Empty';
+        }
+        if (typeof score === 'number') {
+          return score.toFixed(2);
+        }
+        return score;
       },
     },
     {

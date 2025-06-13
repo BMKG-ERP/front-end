@@ -1,12 +1,12 @@
 'use client';
 
 import DailyReportTable from './DailyReportTable';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
-function DiagnosticDetailPage({ params }) {
-  const { stationCode } = params; // Extract station code
-
+function DiagnosticDetailPage() {
   const router = useRouter();
+  const params = useParams();
+  const stationCode = params.stationCode;
 
   return (
     <div className="z-10 h-full w-full flex justify-center">
